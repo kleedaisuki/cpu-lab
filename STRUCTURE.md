@@ -93,6 +93,7 @@ cpu-lab/
 │   └── interfaces/
 │       └── cli/
 │           ├── cli_parser.hpp # 解析命令行参数
+│           ├── validation_service.hpp # 校验配置正确性
 │           └── command_dispatcher.hpp # 分发命令行参数到应用层实现的状态机
 │
 ├── src/
@@ -133,6 +134,7 @@ cpu-lab/
 │       └── cli/
 │           ├── cli_parser.cpp # 解析命令行参数
 │           ├── command_dispatcher.cpp # 分发命令行参数到应用层实现的状态机
+│           ├── validation_service.cpp # 校验配置正确性
 │           └── main.cpp # 入口
 │
 ├── scripts/
