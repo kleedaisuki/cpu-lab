@@ -101,7 +101,7 @@ cpu-lab/
 │   │   ├── timing/
 │   │   │   └── high_resolution_timer.cpp # 计算最小二乘功能的高精度计时器
 │   │   ├── csv/
-│   │   │   ├── row.cpp # Row 的 struct 基类，提供 T::meta() 实现 tuple-like reflection
+│   │   │   ├── row.cpp # RowLike concept，要求 T::meta() 实现 tuple-like reflection
 │   │   │   ├── csv_reader.cpp # 从 csv 加载 Row
 │   │   │   └── csv_writer.cpp # 将 Row 写入 csv，带锁
 │   │   └── system/
