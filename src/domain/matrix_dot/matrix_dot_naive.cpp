@@ -9,14 +9,17 @@ namespace cpu_lab::domain::matrix_dot
 
     Vector matrix_dot_naive(const Matrix &matrix, const Vector &vector)
     {
-        if (matrix.rows() != vector.size()) {
+        if (matrix.rows() != vector.size())
+        {
             throw std::invalid_argument("matrix_dot_naive requires matrix.rows() == vector.size().");
         }
 
         Vector output(matrix.cols(), 0.0);
-        for (std::size_t col = 0U; col < matrix.cols(); ++col) {
+        for (std::size_t col = 0U; col < matrix.cols(); ++col)
+        {
             double sum = 0.0;
-            for (std::size_t row = 0U; row < matrix.rows(); ++row) {
+            for (std::size_t row = 0U; row < matrix.rows(); ++row)
+            {
                 sum += matrix(row, col) * vector[row];
             }
             output[col] = sum;
@@ -30,7 +33,8 @@ namespace cpu_lab::domain::matrix_dot
           vector_(std::move(vector)),
           output_(matrix_.cols(), 0.0)
     {
-        if (matrix_.rows() != vector_.size()) {
+        if (matrix_.rows() != vector_.size())
+        {
             throw std::invalid_argument("MatrixDotNaive requires matrix.rows() == vector.size().");
         }
     }

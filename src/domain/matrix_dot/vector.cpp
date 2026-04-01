@@ -82,12 +82,14 @@ namespace cpu_lab::domain::matrix_dot
 
     double Vector::dot(const Vector &other) const
     {
-        if (values_.size() != other.values_.size()) {
+        if (values_.size() != other.values_.size())
+        {
             throw std::invalid_argument("Vector::dot requires equal sizes.");
         }
 
         double sum = 0.0;
-        for (std::size_t i = 0U; i < values_.size(); ++i) {
+        for (std::size_t i = 0U; i < values_.size(); ++i)
+        {
             sum += values_[i] * other.values_[i];
         }
 
@@ -97,7 +99,8 @@ namespace cpu_lab::domain::matrix_dot
     std::uint64_t Vector::fingerprint() const noexcept
     {
         std::uint64_t seed = 0xC70F6907UL;
-        for (const double value : values_) {
+        for (const double value : values_)
+        {
             seed = mix_hash(seed, std::bit_cast<std::uint64_t>(value));
         }
         return seed;

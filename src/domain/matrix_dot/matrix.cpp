@@ -20,11 +20,13 @@ namespace cpu_lab::domain::matrix_dot
          */
         [[nodiscard]] std::size_t checked_product(const std::size_t rows, const std::size_t cols)
         {
-            if (rows == 0U || cols == 0U) {
+            if (rows == 0U || cols == 0U)
+            {
                 return 0U;
             }
 
-            if (rows > (std::numeric_limits<std::size_t>::max() / cols)) {
+            if (rows > (std::numeric_limits<std::size_t>::max() / cols))
+            {
                 throw std::overflow_error("Matrix shape multiplication overflow.");
             }
 
@@ -45,7 +47,8 @@ namespace cpu_lab::domain::matrix_dot
           values_(std::move(values))
     {
         const std::size_t expected_size = checked_product(rows, cols);
-        if (values_.size() != expected_size) {
+        if (values_.size() != expected_size)
+        {
             throw std::invalid_argument("Matrix storage size does not match shape.");
         }
     }
@@ -72,7 +75,8 @@ namespace cpu_lab::domain::matrix_dot
 
     double &Matrix::at(const std::size_t row, const std::size_t col)
     {
-        if (row >= rows_ || col >= cols_) {
+        if (row >= rows_ || col >= cols_)
+        {
             throw std::out_of_range("Matrix::at index out of range.");
         }
         return values_.at(linear_index(row, col));
@@ -80,7 +84,8 @@ namespace cpu_lab::domain::matrix_dot
 
     const double &Matrix::at(const std::size_t row, const std::size_t col) const
     {
-        if (row >= rows_ || col >= cols_) {
+        if (row >= rows_ || col >= cols_)
+        {
             throw std::out_of_range("Matrix::at index out of range.");
         }
         return values_.at(linear_index(row, col));
