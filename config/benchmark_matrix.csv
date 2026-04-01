@@ -1,0 +1,6 @@
+﻿case_id,algorithm,rows,cols,matrix_base,matrix_row_step,matrix_col_step,vector_base,vector_step,cache_block_cols,notes
+m_256_naive,naive,256,256,1.0,0.01,0.001,0.5,0.002,64,baseline_dense
+m_256_cache_32,cache,256,256,1.0,0.01,0.001,0.5,0.002,32,cache_tile_32
+m_512_naive,naive,512,512,2.0,0.02,0.0005,0.25,0.001,64,baseline_large
+m_512_cache_64,cache,512,512,2.0,0.02,0.0005,0.25,0.001,64,cache_tile_64
+m_1024_cache_128,cache,1024,1024,3.0,0.005,0.0002,0.125,0.0005,128,cache_tile_128
