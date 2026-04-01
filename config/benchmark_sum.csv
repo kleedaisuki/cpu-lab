@@ -1,0 +1,6 @@
+case_id,algorithm,length,value_base,value_step,superscalar_lanes,notes
+s_4096_naive,naive,4096,1.0,0.001,4,baseline_chain
+s_4096_super_2,superscalar,4096,1.0,0.001,2,two_lane
+s_4096_super_4,superscalar,4096,1.0,0.001,4,four_lane
+s_16384_naive,naive,16384,0.5,0.0005,4,baseline_large
+s_16384_super_8,superscalar,16384,0.5,0.0005,8,eight_lane
