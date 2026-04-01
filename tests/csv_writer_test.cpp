@@ -1,23 +1,23 @@
-﻿#include "infrastructure/csv/csv_reader.hpp"
+#include "infrastructure/csv/csv_reader.hpp"
 #include "infrastructure/csv/csv_writer.hpp"
 
 #include <cassert>
 #include <filesystem>
 #include <sstream>
 #include <string>
+#include <tuple>
 #include <vector>
 
 using cpu_lab::infrastructure::csv::CsvReadOptions;
 using cpu_lab::infrastructure::csv::CsvReader;
 using cpu_lab::infrastructure::csv::CsvWriteOptions;
 using cpu_lab::infrastructure::csv::CsvWriter;
-using cpu_lab::infrastructure::csv::Row;
 using cpu_lab::infrastructure::csv::make_row_field;
 
 /**
  * @brief 用于 CSV 写入测试的行类型（test row）；Row model for CSV writer test.
  */
-struct WriteExampleRow final : Row<WriteExampleRow>
+struct WriteExampleRow final
 {
     /** @brief 计数字段（count field）；Integral field. */
     int count{0};

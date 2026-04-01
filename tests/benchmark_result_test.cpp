@@ -13,6 +13,8 @@ using cpu_lab::infrastructure::csv::CsvReadOptions;
 using cpu_lab::infrastructure::csv::CsvReader;
 using cpu_lab::infrastructure::csv::CsvWriteOptions;
 using cpu_lab::infrastructure::csv::CsvWriter;
+using cpu_lab::infrastructure::csv::row_field_count;
+using cpu_lab::infrastructure::csv::row_header;
 
 /**
  * @brief 构造一个有效基准结果（build valid benchmark result）；Create a valid sample result row.
@@ -39,8 +41,8 @@ static BenchmarkResult make_valid_row()
 
 int main()
 {
-    const auto header = BenchmarkResult::header();
-    assert(header.size() == BenchmarkResult::field_count());
+    const auto header = row_header<BenchmarkResult>();
+    assert(header.size() == row_field_count<BenchmarkResult>());
     assert(!header.empty());
     assert(header.front() == "benchmark_name");
     assert(header.back() == "notes");

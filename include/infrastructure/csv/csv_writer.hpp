@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "infrastructure/csv/row.hpp"
 
@@ -149,20 +149,20 @@ namespace cpu_lab::infrastructure::csv
          * @param rows 行对象列表（row vector）。
          * @return 无返回值（no return value）。
          */
-        template <typename RowT>
+        template <RowLike RowT>
         void write_rows(std::ostream &output, const std::vector<RowT> &rows) const
         {
             std::vector<std::string> header{};
             if (options_.write_header)
             {
-                header = RowT::header();
+                header = row_header<RowT>();
             }
 
             std::vector<std::vector<std::string>> records{};
             records.reserve(rows.size());
             for (const auto &row : rows)
             {
-                records.push_back(serialize_row(row));
+                records.push_back(serialize_row<RowT>(row));
             }
 
             write_table(output, header, records);
@@ -175,20 +175,20 @@ namespace cpu_lab::infrastructure::csv
          * @param rows 行对象列表（row vector）。
          * @return 无返回值（no return value）。
          */
-        template <typename RowT>
+        template <RowLike RowT>
         void write_rows_to_file(const std::string &file_path, const std::vector<RowT> &rows) const
         {
             std::vector<std::string> header{};
             if (options_.write_header)
             {
-                header = RowT::header();
+                header = row_header<RowT>();
             }
 
             std::vector<std::vector<std::string>> records{};
             records.reserve(rows.size());
             for (const auto &row : rows)
             {
-                records.push_back(serialize_row(row));
+                records.push_back(serialize_row<RowT>(row));
             }
 
             write_table_to_file(file_path, header, records);
@@ -201,13 +201,14 @@ namespace cpu_lab::infrastructure::csv
          * @param row 行对象（row object）。
          * @return 单行单元格数组（record cells）。
          */
-        template <typename RowT>
+        template <RowLike RowT>
         [[nodiscard]] std::vector<std::string> serialize_row(const RowT &row) const
         {
             std::vector<std::string> record{};
-            record.reserve(RowT::field_count());
+            record.reserve(row_field_count<RowT>());
 
-            row.for_each_field(
+            for_each_field(
+                row,
                 [&record](const std::string_view /*name*/, const auto &value)
                 {
                     record.push_back(detail::stringify_cell(value));

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "infrastructure/csv/row.hpp"
 
@@ -130,7 +130,7 @@ namespace cpu_lab::infrastructure::csv
          * @param has_header 是否使用表头映射（map by header names）。
          * @return 填充后的行对象（materialized row）。
          */
-        template <typename RowT>
+        template <RowLike RowT>
         [[nodiscard]] RowT record_to_row(
             const std::vector<std::string> &record,
             const std::unordered_map<std::string, std::size_t> &header_index,
@@ -139,7 +139,8 @@ namespace cpu_lab::infrastructure::csv
             RowT row{};
             std::size_t ordinal_index{0U};
 
-            row.for_each_field(
+            for_each_field(
+                row,
                 [&record, &header_index, has_header, &ordinal_index](const std::string_view name, auto &value)
                 {
                     std::size_t column_index = ordinal_index;
@@ -195,11 +196,11 @@ namespace cpu_lab::infrastructure::csv
 
         /**
          * @brief 从输入流读取 Row 列表（read rows from stream）；Parse stream and map to reflected rows.
-         * @tparam RowT 行类型（row type），需继承 Row 并实现 meta().
+         * @tparam RowT 行类型（row type）。
          * @param input 输入流（input stream）。
          * @return 读取到的行对象列表（row vector）。
          */
-        template <typename RowT>
+        template <RowLike RowT>
         [[nodiscard]] std::vector<RowT> read_rows(std::istream &input) const
         {
             const CsvTable table = read_table(input);
@@ -222,11 +223,11 @@ namespace cpu_lab::infrastructure::csv
 
         /**
          * @brief 从文件读取 Row 列表（read rows from file）；Parse file and map to reflected rows.
-         * @tparam RowT 行类型（row type），需继承 Row 并实现 meta().
+         * @tparam RowT 行类型（row type）。
          * @param file_path 文件路径（file path）。
          * @return 读取到的行对象列表（row vector）。
          */
-        template <typename RowT>
+        template <RowLike RowT>
         [[nodiscard]] std::vector<RowT> read_rows_from_file(const std::string &file_path) const
         {
             const CsvTable table = read_table_from_file(file_path);

@@ -1,19 +1,19 @@
-﻿#include "infrastructure/csv/csv_reader.hpp"
+#include "infrastructure/csv/csv_reader.hpp"
 
 #include <cassert>
 #include <cmath>
 #include <sstream>
 #include <string>
+#include <tuple>
 
 using cpu_lab::infrastructure::csv::CsvReader;
 using cpu_lab::infrastructure::csv::CsvReadOptions;
 using cpu_lab::infrastructure::csv::make_row_field;
-using cpu_lab::infrastructure::csv::Row;
 
 /**
  * @brief 用于 CSV 读取测试的行类型（test row）；Row model for CSV reader test.
  */
-struct ExampleRow final : Row<ExampleRow>
+struct ExampleRow final
 {
     /** @brief 计数字段（count field）；Integral field. */
     int count{0};

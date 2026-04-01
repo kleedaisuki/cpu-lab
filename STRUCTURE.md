@@ -62,7 +62,7 @@ cpu-lab/
 │   │   ├── timing/
 │   │   │   └── high_resolution_timer.hpp # 计算最小二乘功能的高精度计时器
 │   │   ├── csv/
-│   │   │   ├── row.hpp # Row 的 struct 基类，提供 T::meta() 实现 tuple-like reflection
+│   │   │   ├── row.hpp # RowLike concept，要求 T::meta() 实现 tuple-like reflection
 │   │   │   ├── csv_reader.hpp # 从 csv 加载 Row
 │   │   │   └── csv_writer.hpp # 将 Row 写入 csv，支持原子写和批量提交
 │   │   └── system/
@@ -70,7 +70,7 @@ cpu-lab/
 │   │
 │   ├── domain/
 │   │   ├── shared/
-│   │   │   ├── benchmark_result.hpp # 实验结果的 Row
+│   │   │   ├── benchmark_result.hpp # 实验结果的 RowLike 实现
 │   │   │   └── algorithm_orchestrator.hpp # 提供一个备有 operator() 的实验框架，用模板参数解耦实验算法 policy
 │   │   │
 │   │   ├── matrix_dot/

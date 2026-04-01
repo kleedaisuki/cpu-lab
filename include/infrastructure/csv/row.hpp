@@ -1,5 +1,6 @@
 #pragma once
 
+#include <concepts>
 #include <cstddef>
 #include <string>
 #include <string_view>
@@ -91,92 +92,97 @@ namespace cpu_lab::infrastructure::csv
     } // namespace detail
 
     /**
-     * @brief 行反射基类（Row reflection base）；CRTP base for tuple-like row metadata reflection.
-     * @tparam DerivedT 派生行类型（derived row type），需实现 static constexpr meta().
+     * @brief 行类型概念（row-like concept）；Compile-time contract for reflected CSV row types.
+     * @tparam RowT 行类型（row type）。
      */
-    template <typename DerivedT>
-    class Row
+    template <typename RowT>
+    concept RowLike = requires
     {
-    public:
-        /** @brief 派生类型别名（derived alias）；Alias for derived row type. */
-        using DerivedType = DerivedT;
-
-        /**
-         * @brief 字段数量（field count）；Number of reflected fields.
-         * @return 字段数量（field count）。
-         */
-        [[nodiscard]] static constexpr std::size_t field_count() noexcept
-        {
-            using MetaType = decltype(DerivedType::meta());
-            return std::tuple_size_v<MetaType>;
-        }
-
-        /**
-         * @brief 生成 CSV 表头（CSV header）；Build CSV header names from metadata.
-         * @return 表头列名数组（header columns）。
-         */
-        [[nodiscard]] static std::vector<std::string> header()
-        {
-            std::vector<std::string> columns{};
-            columns.reserve(field_count());
-
-            for_each_meta(
-                [&columns](const auto &field)
-                {
-                    columns.push_back(detail::copy_header_name(field.name));
-                });
-
-            return columns;
-        }
-
-        /**
-         * @brief 遍历元信息字段（iterate metadata）；Visit each field descriptor in meta().
-         * @tparam FnT 可调用对象类型（callable type）。
-         * @param fn 回调函数（callback）。
-         * @return 无返回值；No return value.
-         */
-        template <typename FnT>
-        static constexpr void for_each_meta(FnT &&fn)
-        {
-            const auto meta = DerivedType::meta();
-            detail::for_each_in_tuple(meta, std::forward<FnT>(fn));
-        }
-
-        /**
-         * @brief 遍历当前对象字段（mutable visit）；Visit each reflected field with mutable access.
-         * @tparam FnT 可调用对象类型（callable type）。
-         * @param fn 回调函数，签名建议为 fn(std::string_view, ValueT&)。
-         *          Callback, suggested signature fn(std::string_view, ValueT&).
-         * @return 无返回值；No return value.
-         */
-        template <typename FnT>
-        constexpr void for_each_field(FnT &&fn)
-        {
-            DerivedType &self = static_cast<DerivedType &>(*this);
-            for_each_meta(
-                [&self, &fn](const auto &field)
-                {
-                    fn(field.name, self.*(field.member));
-                });
-        }
-
-        /**
-         * @brief 遍历当前对象字段（const visit）；Visit each reflected field with const access.
-         * @tparam FnT 可调用对象类型（callable type）。
-         * @param fn 回调函数，签名建议为 fn(std::string_view, const ValueT&)。
-         *          Callback, suggested signature fn(std::string_view, const ValueT&).
-         * @return 无返回值；No return value.
-         */
-        template <typename FnT>
-        constexpr void for_each_field(FnT &&fn) const
-        {
-            const DerivedType &self = static_cast<const DerivedType &>(*this);
-            for_each_meta(
-                [&self, &fn](const auto &field)
-                {
-                    fn(field.name, self.*(field.member));
-                });
-        }
+        { RowT::meta() };
     };
+
+    /**
+     * @brief 字段数量（field count）；Number of reflected fields.
+     * @tparam RowT 行类型（row type）。
+     * @return 字段数量（field count）。
+     */
+    template <RowLike RowT>
+    [[nodiscard]] constexpr std::size_t row_field_count() noexcept
+    {
+        using MetaType = decltype(RowT::meta());
+        return std::tuple_size_v<MetaType>;
+    }
+
+    /**
+     * @brief 遍历元信息字段（iterate metadata）；Visit each field descriptor in meta().
+     * @tparam RowT 行类型（row type）。
+     * @tparam FnT 可调用对象类型（callable type）。
+     * @param fn 回调函数（callback）。
+     * @return 无返回值；No return value.
+     */
+    template <RowLike RowT, typename FnT>
+    constexpr void row_for_each_meta(FnT &&fn)
+    {
+        const auto meta = RowT::meta();
+        detail::for_each_in_tuple(meta, std::forward<FnT>(fn));
+    }
+
+    /**
+     * @brief 生成 CSV 表头（CSV header）；Build CSV header names from metadata.
+     * @tparam RowT 行类型（row type）。
+     * @return 表头列名数组（header columns）。
+     */
+    template <RowLike RowT>
+    [[nodiscard]] std::vector<std::string> row_header()
+    {
+        std::vector<std::string> columns{};
+        columns.reserve(row_field_count<RowT>());
+
+        row_for_each_meta<RowT>(
+            [&columns](const auto &field)
+            {
+                columns.push_back(detail::copy_header_name(field.name));
+            });
+
+        return columns;
+    }
+
+    /**
+     * @brief 遍历当前对象字段（mutable visit）；Visit each reflected field with mutable access.
+     * @tparam RowT 行类型（row type）。
+     * @tparam FnT 可调用对象类型（callable type）。
+     * @param row 目标对象（target row object）。
+     * @param fn 回调函数，签名建议为 fn(std::string_view, ValueT&)。
+     *          Callback, suggested signature fn(std::string_view, ValueT&).
+     * @return 无返回值；No return value.
+     */
+    template <RowLike RowT, typename FnT>
+    constexpr void for_each_field(RowT &row, FnT &&fn)
+    {
+        row_for_each_meta<RowT>(
+            [&row, &fn](const auto &field)
+            {
+                fn(field.name, row.*(field.member));
+            });
+    }
+
+    /**
+     * @brief 遍历当前对象字段（const visit）；Visit each reflected field with const access.
+     * @tparam RowT 行类型（row type）。
+     * @tparam FnT 可调用对象类型（callable type）。
+     * @param row 目标对象（target row object）。
+     * @param fn 回调函数，签名建议为 fn(std::string_view, const ValueT&)。
+     *          Callback, suggested signature fn(std::string_view, const ValueT&).
+     * @return 无返回值；No return value.
+     */
+    template <RowLike RowT, typename FnT>
+    constexpr void for_each_field(const RowT &row, FnT &&fn)
+    {
+        row_for_each_meta<RowT>(
+            [&row, &fn](const auto &field)
+            {
+                fn(field.name, row.*(field.member));
+            });
+    }
 
 } // namespace cpu_lab::infrastructure::csv

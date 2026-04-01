@@ -12,7 +12,7 @@ namespace cpu_lab::domain::shared
     /**
      * @brief 基准结果行（benchmark result row）；Shared benchmark output row with reflected CSV schema.
      */
-    struct BenchmarkResult final : infrastructure::csv::Row<BenchmarkResult>
+    struct BenchmarkResult final
     {
         /** @brief 基准名称（benchmark name）；Benchmark scenario name. */
         std::string benchmark_name{};
