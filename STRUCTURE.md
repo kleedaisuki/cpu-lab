@@ -78,7 +78,9 @@ cpu-lab/
 │   │   │   ├── vector.hpp # Vector
 │   │   │   ├── matrix_generator.hpp # 测试用例生成器 
 │   │   │   ├── matrix_dot_naive.hpp # algorithm policy
-│   │   │   └── matrix_dot_cache.hpp # algorithm policy
+│   │   │   ├── matrix_dot_cache.hpp # algorithm policy
+│   │   │   ├── matrix_dot_cuda_stub.cpp # algorithm policy (CUDA unavailable)
+│   │   │   └── matrix_dot_cuda.cu # algorithm policy
 │   │   │
 │   │   └── sum_reduce/
 │   │       ├── sum_generator.hpp # 测试用例生成器 
@@ -118,7 +120,8 @@ cpu-lab/
 │   │   │   ├── vector.cpp # Vector
 │   │   │   ├── matrix_generator.cpp # 测试用例生成器 
 │   │   │   ├── matrix_dot_naive.cpp # algorithm policy
-│   │   │   └── matrix_dot_cache.cpp # algorithm policy
+│   │   │   ├── matrix_dot_cache.cpp # algorithm policy
+│   │   │   └── matrix_dot_cuda.cu # algorithm policy
 │   │   │
 │   │   └── sum_reduce/
 │   │       ├── sum_generator.cpp # 测试用例生成器 

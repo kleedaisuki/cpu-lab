@@ -1,4 +1,4 @@
-﻿cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.20)
 
 project(cpu-lab VERSION 0.1.0 LANGUAGES CXX)
 
@@ -36,8 +36,31 @@ target_include_directories(cpu_lab_core
         ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
+include(CheckLanguage)
+check_language(CUDA)
+
+if(CMAKE_CUDA_COMPILER)
+    enable_language(CUDA)
+
+    target_sources(cpu_lab_core PRIVATE
+        src/domain/matrix_dot/matrix_dot_cuda.cu
+    )
+
+    set_target_properties(cpu_lab_core PROPERTIES
+        CUDA_STANDARD 17
+        CUDA_STANDARD_REQUIRED ON
+        CUDA_SEPARABLE_COMPILATION ON
+    )
+
+    target_compile_definitions(cpu_lab_core PUBLIC CPU_LAB_ENABLE_CUDA_MATRIX_DOT=1)
+else()
+    target_sources(cpu_lab_core PRIVATE
+        src/domain/matrix_dot/matrix_dot_cuda_stub.cpp
+    )
+endif()
+
 if(MSVC)
-    target_compile_options(cpu_lab_core PRIVATE /W4 /permissive-)
+    target_compile_options(cpu_lab_core PRIVATE /utf-8 /W4 /permissive-)
 else()
     target_compile_options(cpu_lab_core PRIVATE -Wall -Wextra -Wpedantic)
 endif()
@@ -65,7 +88,7 @@ if(CPU_LAB_BUILD_TESTS)
         target_link_libraries(${test_name} PRIVATE cpu_lab_core)
 
         if(MSVC)
-            target_compile_options(${test_name} PRIVATE /W4 /permissive-)
+            target_compile_options(${test_name} PRIVATE /utf-8 /W4 /permissive-)
         else()
             target_compile_options(${test_name} PRIVATE -Wall -Wextra -Wpedantic)
         endif()
