@@ -1,2 +1,24 @@
 \subsection{02 sum reduce}
-待补充内容。
+本小节给出求和归约（\texttt{sum\_reduce}）在修复前后的实验对比。四张图中的后两张对应本小节：
+归一化曲线展示整体趋势，加速比热力图展示不同 lane 配置在各规模下的收益分布。
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.82\textwidth]{figures/03_experiments/02_sum_reduce/sum_normalized_curve.png}
+\caption{Sum Reduce 归一化耗时曲线（Normalized Runtime Curve）}
+\label{fig:sum_normalized_curve}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.82\textwidth]{figures/03_experiments/02_sum_reduce/sum_speedup_heatmap.png}
+\caption{Sum Reduce 加速比热力图（Speedup Heatmap）}
+\label{fig:sum_speedup_heatmap}
+\end{figure}
+
+\input{tables/03_experiments/01_sum_reduce_before_fix_results}
+\input{tables/03_experiments/02_sum_reduce_after_fix_results}
+
+修复前（表 \ref{tab:sum_reduce_before_fix_results}）最优 superscalar 仍显著慢于 naive（speedup $<1$）；
+修复后（表 \ref{tab:sum_reduce_after_fix_results}）在绝大多数规模上获得约 $3\times$ 到 $4\times$ 的加速，
+与图 \ref{fig:sum_speedup_heatmap} 的高收益区域一致。

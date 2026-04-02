@@ -1,0 +1,22 @@
+\begin{table}[H]
+\centering
+\caption{Sum Reduce 结果汇总}
+\label{tab:sum_reduce_after_fix_results}
+\small
+\begin{tabular}{r r r r r}
+\toprule
+problem\_size & naive mean(ns) & best superscalar mean(ns) & best lane & speedup \\
+\midrule
+1024 & 453.385 & 121.875 & 8 & 3.72x \\
+2048 & 926.823 & 246.094 & 16 & 3.77x \\
+4096 & 1855.208 & 461.198 & 16 & 4.02x \\
+8192 & 3799.740 & 983.854 & 16 & 3.86x \\
+16384 & 7404.948 & 1918.229 & 16 & 3.86x \\
+32768 & 16029.948 & 3860.938 & 16 & 4.15x \\
+65536 & 31409.115 & 10675.000 & 8 & 2.94x \\
+131072 & 63255.208 & 15786.719 & 16 & 4.01x \\
+262144 & 122703.646 & 38325.781 & 16 & 3.20x \\
+524288 & 243235.677 & 65128.125 & 16 & 3.73x \\
+\bottomrule
+\end{tabular}
+\end{table}

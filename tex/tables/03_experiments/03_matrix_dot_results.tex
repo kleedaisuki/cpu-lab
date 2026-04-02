@@ -1,0 +1,20 @@
+\begin{table}[H]
+\centering
+\caption{Matrix Dot 结果汇总}
+\label{tab:matrix_dot_results}
+\small
+\begin{tabular}{r r r r r r}
+\toprule
+problem\_size & n & naive mean(ns) & best cache mean(ns) & best tile & speedup \\
+\midrule
+16384 & 128 & 85409.375 & 82809.896 & 128 & 1.03x \\
+36864 & 192 & 189290.625 & 185805.208 & 64 & 1.02x \\
+65536 & 256 & 345890.625 & 327537.500 & 256 & 1.06x \\
+147456 & 384 & 763922.917 & 700497.396 & 256 & 1.09x \\
+262144 & 512 & 1638146.354 & 1281760.417 & 256 & 1.28x \\
+589824 & 768 & 3727486.979 & 2883064.583 & 256 & 1.29x \\
+1048576 & 1024 & 8000271.354 & 5058044.271 & 256 & 1.58x \\
+2359296 & 1536 & 23398195.313 & 11504512.500 & 256 & 2.03x \\
+\bottomrule
+\end{tabular}
+\end{table}

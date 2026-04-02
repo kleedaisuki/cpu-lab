@@ -1,2 +1,23 @@
 \subsection{01 matrix dot}
-待补充内容。
+本小节展示矩阵列点积（\texttt{matrix\_dot}）实验的可视化结果，对比基线实现与 cache 优化实现在不同问题规模下的归一化耗时与加速比分布。
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.82\textwidth]{figures/03_experiments/01_matrix_dot/matrix_normalized_curve.png}
+\caption{Matrix Dot 归一化耗时曲线（Normalized Runtime Curve）}
+\label{fig:matrix_normalized_curve}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.82\textwidth]{figures/03_experiments/01_matrix_dot/matrix_speedup_heatmap.png}
+\caption{Matrix Dot 加速比热力图（Speedup Heatmap）}
+\label{fig:matrix_speedup_heatmap}
+\end{figure}
+
+从图 \ref{fig:matrix_normalized_curve} 和图 \ref{fig:matrix_speedup_heatmap} 可以看到：
+随着规模增大，合适 tile 尺寸的 cache 策略收益更明显；在小规模输入上收益有限，但在大规模输入上呈现更稳定的正向加速。
+
+\input{tables/03_experiments/03_matrix_dot_results}
+
+表 \ref{tab:matrix_dot_results} 进一步量化了不同规模下的最优 tile 选择与加速比；随着 n 增大，cache 优化的收益显著提升。

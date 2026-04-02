@@ -193,8 +193,9 @@ cpu-lab/
 │   │   ├── 02_algorithm_policies
 │   │   │   └── algorithm_policies_overview.tex
 │   │   ├── 03_experiments
-│   │   │   ├── 01_matrix_dot_results.tex
-│   │   │   └── 02_sum_reduce_results.tex
+│   │   │   ├── 01_sum_reduce_before_fix_results.tex
+│   │   │   ├── 02_sum_reduce_after_fix_results.tex
+│   │   │   └── 03_matrix_dot_results.tex
 │   │   └── 05_agents_build_systems/
 │   │       └── 01_differences_between_chatbot_and_agent.tex
 │   └── latexmkrc
