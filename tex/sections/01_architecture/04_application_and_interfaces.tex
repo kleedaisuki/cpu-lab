@@ -1,2 +1,118 @@
-\subsection{04 application and interfaces}
-待补充内容。
+\subsection{应用层与接口层（Application \& Interfaces）实现细节}
+
+在 DDD 分层中，应用层负责“编排”（orchestration），接口层负责“解释外部输入并驱动应用层”。
+两者都不承载具体算法细节，而是围绕流程一致性、错误可解释性和可扩展性构建稳定边界。
+
+\subsubsection{应用层：Pipeline 编排模型}
+
+应用层以抽象基类 \texttt{BenchmarkPipeline} 定义统一契约：
+\begin{equation}
+\texttt{run()} : \varnothing \rightarrow \{\texttt{BenchmarkResult}\}.
+\end{equation}
+
+这意味着任意实验流水线都被规范为“读取测试用例、展开构造参数、调用领域编排器、写出结果”四步：
+\begin{equation}
+\mathcal{P}=\mathcal{W}\circ\mathcal{O}\circ\mathcal{G}\circ\mathcal{R},
+\end{equation}
+其中 \(\mathcal{R}\) 为 CSV 读取（read），\(\mathcal{G}\) 为构造参数生成（generate ctor args），
+\(\mathcal{O}\) 为 \texttt{AlgorithmOrchestrator} 测量，\(\mathcal{W}\) 为 CSV 写出（write）。
+
+对 matrix 与 sum 两条流水线，配置结构满足同构（isomorphic）关系：
+\begin{equation}
+\texttt{Config}_{\text{domain}} = (\texttt{common},\ \texttt{benchmark\_name}),
+\end{equation}
+\begin{equation}
+\texttt{common}=(\texttt{input},\texttt{output},\texttt{run\_counts},\texttt{warmup},\texttt{append},\texttt{atomic}).
+\end{equation}
+这种设计把“实验共性”集中到 \texttt{BenchmarkPipelineConfig}，把“实验个性”收敛到领域测试行与算法枚举。
+
+\subsubsection{应用层工作量与稳定性建模}
+
+设测试用例条数为 \(M\)，采样 run-count 列表为 \(\{r_k\}_{k=1}^{K}\)，预热轮数为 \(w\)。
+若单条用例在一次 \texttt{run\_once()} 的成本为 \(\tau_j\)，则总执行次数可写为
+\begin{equation}
+N_{\text{exec}} = M\left(w + \sum_{k=1}^{K} r_k\right),
+\end{equation}
+总时间近似为
+\begin{equation}
+T_{\text{pipeline}} \approx \sum_{j=1}^{M}\tau_j\left(w + \sum_{k=1}^{K} r_k\right) + T_{\text{io}} + T_{\text{dispatch}}.
+\end{equation}
+
+因此应用层的关键职责不是“降低单次算子复杂度”，而是控制流程开销的可预测性（predictability）：
+\(T_{\text{io}}\) 与 \(T_{\text{dispatch}}\) 应尽量与算法策略解耦，避免污染领域测量结果。
+
+此外，\texttt{MatrixBenchmarkPipeline} 在 CUDA 路径上实现了显式降级（fallback）：
+当 CUDA 策略运行抛异常时回退到 cache 策略，并把异常信息附加到 \texttt{notes}。
+这保持了批量实验的连续性（availability），避免“单条失败导致整批中断”。
+
+\subsubsection{接口层：CLI 解析的确定性状态机}
+
+接口层将命令行建模为有限状态机（finite-state machine, FSM）。
+顶层命令集合为
+\begin{equation}
+\mathcal{C}=\{\texttt{help},\texttt{bench},\texttt{validate}\}.
+\end{equation}
+
+解析函数可记为
+\begin{equation}
+\Pi: \texttt{argv} \mapsto \texttt{CliParseResult},
+\end{equation}
+其输出是规范化负载（normalized payload）：
+\begin{equation}
+\texttt{CliParseResult}=(\texttt{command\_kind},\ \texttt{bench\_options},\ \texttt{validate\_options}).
+\end{equation}
+
+在 \texttt{bench} 分支，目标域
+\begin{equation}
+\mathcal{B}=\{\texttt{matrix},\texttt{sum}\};
+\end{equation}
+在 \texttt{validate} 分支，目标域
+\begin{equation}
+\mathcal{V}=\{\texttt{matrix},\texttt{sum},\texttt{all}\}.
+\end{equation}
+
+默认值（default values）由解析器集中注入，例如：
+\(\texttt{run\_counts}=\{16,32,64\}\)、\(\texttt{warmup}=1\)、输入输出路径与 benchmark 名称。
+这样可保证“最短命令可运行”，同时允许显式 flag 覆盖。
+
+\subsubsection{分发、校验与退出码语义}
+
+\texttt{CommandDispatcher} 将解析结果映射到运行行为：
+\begin{equation}
+\Delta: \texttt{CliParseResult} \mapsto \texttt{ExitCode}.
+\end{equation}
+
+退出码集合为
+\begin{equation}
+\mathcal{E}=\{0,1,2,3\}=
+\{\texttt{Success},\texttt{UsageError},\texttt{ValidationFailed},\texttt{RuntimeError}\}.
+\end{equation}
+这提供了对自动化脚本友好的判定语义：
+\begin{equation}
+\texttt{ok} \iff \texttt{exit\_code}=0.
+\end{equation}
+
+\texttt{ValidationService} 则执行“强约束静态检查”（strict static validation）：
+一方面检查 options（路径、run-count、strict 模式），另一方面检查 CSV 结构与字段语义（必需列、数值可解析、取值域合法）。
+其报告模型为
+\begin{equation}
+\texttt{ValidationReport}=(\texttt{target},\ \texttt{issues}),
+\end{equation}
+并支持 text/json 双格式渲染，便于人读与机器消费。
+
+\subsubsection{架构收益与扩展边界}
+
+从分层收益看，当前设计形成了清晰的职责闭包：
+\begin{itemize}
+    \item \textbf{Application}：流程编排与结果落盘；
+    \item \textbf{Interfaces}：命令解释、错误映射、输入前置校验；
+    \item \textbf{Domain}：算法执行与测量统计；
+    \item \textbf{Infrastructure}：计时、CSV、系统能力。
+\end{itemize}
+
+因此新增实验类型时，只需补充新的 Pipeline 与对应 CLI target，既有解析-分发-校验骨架可复用。
+其可扩展复杂度近似为
+\begin{equation}
+\Delta C \approx C_{\text{new pipeline}} + C_{\text{new cli target}},
+\end{equation}
+而非跨层连锁改动，保持系统演化成本线性可控。
