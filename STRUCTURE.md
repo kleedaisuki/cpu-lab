@@ -35,17 +35,12 @@ cpu-lab/
 │
 ├── CMakeLists.txt
 │
-├── requirements.txt
-│
 ├── config/
 │   ├── benchmark_matrix.csv # 实验 1 实验配置，每一行代表一个实验
 │   ├── benchmark_sum.csv # 实验 2 实验配置，每一行代表一个实验
 │   └── plot_config.json # matplotlib 可视化配置
 │
 ├── data/
-│   ├── input/
-│   │   ├── matrix/
-│   │   └── sum/
 │   ├── raw/
 │   │   ├── matrix_dot/
 │   │   └── sum_reduce/
@@ -142,11 +137,9 @@ cpu-lab/
 ├── scripts/
 │   └── visualizer/
 │       ├── main.py
-│       ├── preprocess_results.py
-│       ├── plot_matrix_dot.py
-│       ├── plot_sum_reduce.py
-│       ├── export_tables.py
-│       └── plot_style.py
+│       ├── preprocess.py
+│       ├── plotters.py
+│       └── requirements.txt
 │ 
 ├── bin/
 ├── build/
