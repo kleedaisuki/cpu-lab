@@ -1,2 +1,15 @@
-\subsection{01 codex}
-待补充内容。
+\subsection{Codex：从 Chatbot 到 Agent 的交互升级}
+
+大型语言模型（LLM）的早期应用主要集中于对话机器人（Chatbot），其核心优化目标是基于上下文的历史序列拟合下一个隐式符号的概率分布，即最大化 $P(y_t | y_{<t}, x)$。然而，这种纯粹的自回归生成范式存在固有的认知局限：它将模型禁锢在文本空间的“沙盒”中，缺乏与外部物理或数字世界的双向交互能力。
+
+真正触发交互范式跃迁（Paradigm Shift）的关键，并非模型在代码生成准确率上的单一提升，而是以早期的 Codex 为先导、至如今的 Claude Code 所确立的全新交互模式（Novel Interaction Modality）。传统的对话机器人（Chatbot）将自然语言文本作为交互的交付终点；而在此新范式中，模型通过无缝集成终端、文件系统与 REPL（Read-Eval-Print Loop，读取-求值-输出循环）环境，将“执行上下文（Execution Context）”作为人机协同的共享介质（Shared Medium）。这标志着大语言模型的角色，从孤立的“基于提示词的文本回应者（Prompt-based Text Responder）”，蜕变为能够与开发者在同一计算空间中进行“状态共建与连续干预（State Co-construction and Continuous Intervention）”的协作者。这种底层交互逻辑的升级，在系统架构与交互链路层面体现为以下三个核心维度的演进：
+
+第一，\textbf{从开环生成到闭环控制（From Open-loop Generation to Closed-loop Control）}。传统的 Chatbot 是一种开环系统（Open-loop System），其交互是离散的“请求-响应（Request-Response）”回合制；而智能体（Agent）引入了反馈机制，将其交互建模为部分可观察马尔可夫决策过程（Partially Observable Markov Decision Process, POMDP）。在此框架下，Agent 在时间步 $t$ 生成一个代码片段或 API 调用作为动作 $a_t \sim \pi(\cdot | o_{\le t}, a_{<t})$，外部环境（如终端、解释器或真实世界）执行该动作并返回状态观测 $o_{t+1}$ 和奖励信号 $r_{t+1}$。这种闭环机制使得 Agent 能够进行自我修正（Self-Correction）和多步推理。
+
+第二，\textbf{控制流与执行权力的让渡（Delegation of Control Flow）}。Chatbot 的运行逻辑由硬编码（Hard-coded）的外部程序主导，模型仅作为数据处理管道中的一个被动节点（Passive Node）。而在基于 Codex 范式的 Agent 中，系统设计采用了控制反转（Inversion of Control, IoC）思想。模型通过生成控制流语句（如条件分支、循环结构），自主决定工具调用（Tool Use）的顺序与时机，实质上接管了系统的任务调度权。
+
+第三，\textbf{表征空间的拓展与具身性（Embodiment in Digital Space）}。通过生成结构化代码，Agent 跨越了自然语言的模糊性边界。代码作为一种具有严格语义的中间表示（Intermediate Representation, IR），使得 Agent 能够精确操作数据库、调用外部传感器或操控机械臂。这种在数字环境中的“具身化（Embodiment）”，将交互的深度从“信息检索（Information Retrieval）”延展至“状态干预（State Intervention）”。
+
+如表 \ref{tab:chatbot_vs_agent} 所示，Chatbot 与 Agent 在目标驱动、感知边界和系统架构上存在本质差异。Agent 的出现，标志着人工智能从静态知识的“压缩包”正式走向动态环境中的“自主执行者”。
+
+\input{tables/05_agents_build_systems/01_differences_between_chatbot_and_agent}

@@ -1,2 +1,23 @@
-\subsection{02 context engineering}
-待补充内容。
+\subsection{上下文工程：基于自回归引擎的状态机抽象}
+
+在探讨智能体（Agent）的状态管理之前，必须首先厘清大语言模型（LLM）的底层物理性质：纯粹的无状态性（Statelessness）。当前主流的 Transformer 架构本质上是一个基于马尔可夫假设的自回归生成器（Autoregressive Generator）。其计算目标是基于历史序列的联合概率分布，最大化目标序列的似然：
+
+$$ P(x_{1:T}) = \prod_{t=1}^T P(x_t | x_{<t}; \theta) $$
+
+其中，$x_{1:T}$ 为完整序列，$x_t$ 为时间步 $t$ 生成的词元，$x_{<t}$ 代表直到 $t-1$ 时刻的离散上下文历史，而 $\theta$ 是模型在推理阶段只读的静态参数。这种架构决定了模型在多轮交互中无法通过权重更新来捕获动态状态。因此，“上下文工程（Context Engineering）”的实质，是在一个无状态的概率生成引擎外部，通过维护一个受限的一维词元缓冲区（Token Buffer），来模拟一个具备工作记忆（Working Memory）的确定性状态机（Deterministic State Machine）。
+
+从自回归的视角来看，管理这块极其昂贵且有限的“内存”，需要在以下三个正交维度上进行精密工程化：
+
+第一，\textbf{状态的序列化与表征（State Serialization and Representation）}。由于 $x_{<t}$ 必须是离散的一维词元序列，外部世界复杂的多维、嵌套状态（如文件系统的树状结构、数据库的图结构）必须被强制降维并序列化为文本表示（Textual Representation）。优秀的上下文工程需要设计高信息熵密度的结构化模板（如 XML 或 Markdown 标记），以最少的词元（Tokens）精确锚定外部环境的当前切片，从而降低模型注意力机制（Attention Mechanism）的计算复杂度。
+
+第二，\textbf{KV 缓存视角的计算复用（Computational Reuse via KV Cache）}。在工程实现中，自回归生成的每一步并不需要重新计算 $x_{<t}$ 的所有隐藏状态。通过键值缓存（Key-Value Cache），模型将历史词元的投影矩阵驻留在显存中。此时，上下文工程的策略直接影响着系统的吞吐量：例如，通过系统提示词（System Prompt）前置且保持不变，最大化 Prefix Caching 的命中率；或者利用注意力下沉（Attention Sink）现象，在滚动剔除旧上下文时保留最初始的几个 Token，以维持模型深层注意力的激活稳定性。
+
+第三，\textbf{状态生命周期与信息驱逐（Lifecycle and Context Eviction）}。由于 Transformer 的自注意力计算复杂度相对于序列长度呈二次方 $O(N^2)$ 增长，状态的线性累积必然导致内存溢出（OOM, Out of Memory）或“中间迷失（Lost in the Middle）”的认知降级。因此，上下文不再是简单的历史记录追加（Append-only Log），而必须引入显式的存储层级（Memory Hierarchy）。这表现为对短程记忆（当前 Context Window）中的冗余步骤进行动态摘要（Dynamic Summarization），并将高价值状态序列化至长期记忆（如向量数据库 Vector DB）中，在需要时通过检索增强（RAG, Retrieval-Augmented Generation）将其重新注入到 $x_{<t}$ 的分布中。
+
+基于上述底层内存管理的物理约束，当我们摒弃传统对话机器人的拟人化视角，将 LLM 视为系统的核心计算图（Computational Graph）时，当前智能体技术栈中的核心组件（Prompt Engineering, Function Calling, Skills, MCP）就不再是孤立的启发式技巧（Heuristic Tricks），而是用于弥合“随机概率生成”与“确定性系统控制”之间阻抗不匹配（Impedance Mismatch）的系统级原语（System Primitives）。
+
+这些原语通过对上下文缓冲区的精细读写控制，共同构筑了 Agent 的控制流边界。具体而言，它们从初始偏置、I/O 中断、逻辑降维和协议解耦四个互斥且完备的维度，完成了外部状态向模型输入空间的映射（详见表 \ref{tab:agent_system_primitives}）。
+
+\input{tables/05_agents_build_systems/02_agent_system_primitives.tex}
+
+由此可见，现代 Agent 架构的演进，本质上是上下文边界的不断解耦与标准化。认知能力的上限，不再单纯依赖于扩大模型参数量 $\theta$，而是取决于这套外围接口系统的调度效率、状态表征密度以及对上下文窗口层级记忆的管理策略。

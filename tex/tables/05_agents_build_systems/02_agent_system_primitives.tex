@@ -1,0 +1,35 @@
+\begin{table}[htbp]
+    \centering
+    \caption{Agent 系统原语对自回归上下文的抽象与干预机制}
+    \label{tab:agent_system_primitives}
+    \renewcommand{\arraystretch}{1.4}
+    \begin{tabular}{@{} p{0.18\textwidth} p{0.25\textwidth} p{0.25\textwidth} p{0.25\textwidth} @{}}
+        \toprule
+        \textbf{系统原语} \newline \textit{(System Primitive)} & 
+        \textbf{计算流抽象} \newline \textit{(Compute Flow Abstraction)} & 
+        \textbf{上下文干预逻辑} \newline \textit{(Context Intervention)} & 
+        \textbf{系统学工程意义} \newline \textit{(Engineering Significance)} \\
+        \midrule
+        
+        \textbf{Prompt Engineering} \newline (指令偏置) & 
+        \textbf{归纳偏置注入 (Inductive Bias Injection):} 定义任务的约束边界与先验概率分布。 & 
+        在 $x_{<t}$ 初始化阶段，通过前缀硬编码（Prefix Hardcoding）锁定注意力头的基础激活状态。 & 
+        为无状态模型确立初始执行域（Execution Domain），等价于配置执行环境的环境变量与约束法则。 \\
+        
+        \textbf{Function Calling} \newline (执行中断) & 
+        \textbf{远程过程调用 (RPC) 与中断:} 赋予模型挂起当前生成流并触发外部环境计算的权限。 & 
+        当预测出特定词元（如 \verb|<tool_call>|）时，中断自回归循环，等待外部真实状态写入上下文后再恢复生成。 & 
+        实现了概率生成系统与确定性物理/数字环境之间的读写同步（Read-Write Synchronization）。 \\
+        
+        \textbf{Skills / Tools} \newline (逻辑封装) & 
+        \textbf{子例程抽象 (Subroutine Abstraction):} 将高频的多步操作固化为粗粒度的调用接口。 & 
+        将复杂的业务逻辑代码从当前上下文窗口中剥离，仅在需要时将其接口描述（Schema）映射入上下文。 & 
+        通过降低操作维度（Dimensionality Reduction），极大节约了上下文词元消耗，提升任务规划的可靠性。 \\
+        
+        \textbf{MCP} \newline (协议解耦) & 
+        \textbf{标准化 I/O 接口 (Standardized I/O Interface):} 统一异构数据源与模型之间的双向通信规范。 & 
+        将数据源的获取逻辑与 Prompt 的构建过程解耦，实现外部上下文的动态、即时挂载（Dynamic Mounting）。 & 
+        消除了大量的定制化胶水代码（Glue Code），防止底层数据接入逻辑对高阶推理上下文造成污染。 \\
+        \bottomrule
+    \end{tabular}
+\end{table}

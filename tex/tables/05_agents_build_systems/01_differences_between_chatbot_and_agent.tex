@@ -1,0 +1,28 @@
+% 01_differences_between_chatbot_and_agent.tex
+\begin{table}[htbp]
+    \centering
+    \caption{Chatbot 与 Agent 的多维度架构与交互特性对比}
+    \label{tab:chatbot_vs_agent}
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{@{} p{0.2\textwidth} p{0.35\textwidth} p{0.4\textwidth} @{}}
+        \toprule
+        \textbf{分析维度 (Dimension)} & \textbf{传统对话机器人 (Chatbot)} & \textbf{自主智能体 (Autonomous Agent)} \\
+        \midrule
+        \textbf{核心驱动力} \newline \textit{(Core Driver)} & 
+        \textbf{响应驱动 (Reactive):} 被动等待用户输入，以生成人类偏好的自然语言文本为最终目标。 & 
+        \textbf{目标驱动 (Proactive):} 以完成高阶目标（Goal）为导向，自主进行任务分解（Task Decomposition）与规划。 \\
+        
+        \textbf{环境交互与边界} \newline \textit{(Environment \& Boundary)} & 
+        \textbf{受限的静态边界 (Static Boundary):} 输入输出局限于预设的对话框，无法感知或改变外部系统（如文件系统、网络）的状态。 & 
+        \textbf{具身的动态边界 (Dynamic Embodiment):} 将模型作为认知大脑，通过 API、代码执行器等动作空间（Action Space）直接读取和修改外部环境状态。 \\
+        
+        \textbf{状态与记忆管理} \newline \textit{(State \& Memory)} & 
+        \textbf{短期且扁平 (Short-term \& Flat):} 仅依赖滑动窗口（Sliding Window）保留近期对话上下文，缺乏对长周期任务的结构化记忆。 & 
+        \textbf{分层且持久 (Hierarchical \& Persistent):} 维持复杂的内部工作记忆（Working Memory），并能利用向量数据库进行长期的状态追踪（State Tracking）与知识检索。 \\
+        
+        \textbf{错误处理与演进} \newline \textit{(Fault Tolerance)} & 
+        \textbf{单步失败 (Single-step Failure):} 遇到生成错误或幻觉（Hallucination）时，通常直接向用户暴露错误，需人类介入纠正。 & 
+        \textbf{闭环自省 (Closed-loop Reflection):} 利用环境反馈的错误信息（如 Runtime Error 堆栈），通过 ReAct (Reasoning and Acting) 范式自主反思并重试。 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
