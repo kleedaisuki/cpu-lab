@@ -1,2 +1,121 @@
-\subsection{03 domain}
-待补充内容。
+\subsection{领域层（Domain）建模与编排}
+
+领域层的目标是把“实验问题”抽象为稳定的数学对象与执行协议，而不是把具体实现细节散落在应用层。
+在本项目中，这个协议由 \texttt{AlgorithmOrchestrator} 统一承载：
+给定问题规模、采样计划与某个可运行算法对象，输出统一的 \texttt{BenchmarkResult}。
+
+\subsubsection{\texttt{algorithm\_orchestrator} 的模板元编程设计}
+
+从类型系统看，领域层定义了算法策略概念（concept）约束：
+\begin{equation}
+\texttt{AlgorithmPolicy<P>} \iff
+\begin{cases}
+\texttt{P::algorithm\_name()} \to \texttt{string\_view},\\
+\texttt{P::run\_once()} \to \texttt{void},\\
+\texttt{P::output\_fingerprint()} \to \texttt{uint64\_t}.
+\end{cases}
+\end{equation}
+这等价于在编译期建立“可编排算法”的最小完备接口（minimal complete interface）。
+
+编排入口是一个受概念约束的函数调用算子：
+\begin{equation}
+\texttt{operator()<P, Args...>(config, args...)}
+\end{equation}
+其中 \(P\) 由模板参数确定，构造由转发引用（forwarding reference）完成，运行期只保留对象实例与数据，
+而“是否可编排”在编译期判定，避免虚函数分发（virtual dispatch）带来的额外不确定性。
+
+可把整个领域编排写成映射：
+\begin{equation}
+\mathcal{O}: (\mathcal{C}, \mathcal{P}) \mapsto \mathcal{R},
+\end{equation}
+其中 \(\mathcal{C}\) 是配置空间（benchmark\_name, problem\_size, run\_counts, warmup\_rounds, notes），
+\(\mathcal{P}\) 是满足概念约束的策略集合，\(\mathcal{R}\) 是结果行空间。
+
+对任一样本 \(i\)，计时器返回 \((x_i, y_i)\)：
+\begin{equation}
+ x_i = \text{run\_count}_i,\quad y_i = \text{elapsed\_ns}_i,
+\end{equation}
+领域层再归一化得到单次成本：
+\begin{equation}
+ t_i = \frac{y_i}{x_i} \quad (x_i > 0).
+\end{equation}
+由此构造核心统计量：
+\begin{equation}
+\mu = \frac{1}{n}\sum_{i=1}^{n} t_i,
+\end{equation}
+\begin{equation}
+\mathrm{median}(\{t_i\})=
+\begin{cases}
+ t_{(\frac{n+1}{2})}, & n\ \text{为奇数},\\
+ \frac{t_{(\frac{n}{2})}+t_{(\frac{n}{2}+1)}}{2}, & n\ \text{为偶数},
+\end{cases}
+\end{equation}
+\begin{equation}
+\sigma = \sqrt{\frac{1}{n}\sum_{i=1}^{n}(t_i-\mu)^2}.
+\end{equation}
+
+同时继承基础设施层最小二乘（least-squares）拟合结果 \((\hat\alpha, \hat\beta, R^2)\)，
+从而把“单点测时”升级为“模型化测量”：
+\begin{equation}
+ y_i \approx \hat\alpha x_i + \hat\beta.
+\end{equation}
+这使领域输出既保留经验统计（best/mean/median/stddev），也保留模型参数（slope/intercept/\(R^2\)）。
+
+\subsubsection{实验一（矩阵列点积）的领域抽象}
+
+不讨论具体实现策略时，实验一可以抽象为：
+\begin{equation}
+\mathbf{A}\in\mathbb{R}^{n\times n},\ \mathbf{v}\in\mathbb{R}^{n},\ \mathbf{o}\in\mathbb{R}^{n},
+\end{equation}
+\begin{equation}
+ o_j = \sum_{i=1}^{n} A_{ij}v_i,\quad j=1,\dots,n.
+\end{equation}
+
+其算术操作规模满足：
+\begin{equation}
+\#\mathrm{FLOPs} = \Theta(n^2),
+\end{equation}
+可写为近似线性模型：
+\begin{equation}
+ T_{\text{mat}}(n) \approx a n^2 + b.
+\end{equation}
+当以归一化指标对比不同算法名（不展开内部）时，可定义
+\begin{equation}
+S(n)=\frac{T_{\text{baseline}}(n)}{T_{\text{algo}}(n)},\qquad
+E(n)=\frac{T_{\text{algo}}(n)}{n^2}.
+\end{equation}
+其中 \(S(n)\) 描述速度提升（speedup），\(E(n)\) 描述单位二次规模成本，用于观察跨规模稳定性。
+
+\subsubsection{实验二（求和归约）的领域抽象}
+
+实验二抽象为向量归约：
+\begin{equation}
+\mathbf{x}\in\mathbb{R}^{n},\qquad s=\sum_{i=1}^{n}x_i.
+\end{equation}
+理论工作量：
+\begin{equation}
+W(n)=\Theta(n).
+\end{equation}
+
+在领域统计层，我们关注时间模型与偏离：
+\begin{equation}
+T_{\text{sum}}(n)\approx c n + d,
+\end{equation}
+\begin{equation}
+\rho(n)=\frac{T_{\text{sum}}(n)}{n}
+\end{equation}
+其中 \(\rho(n)\) 是单位元素成本（ns/element）。
+若实现与硬件调度匹配良好，\(\rho(n)\) 会在足够大规模后趋于平台相关常数；
+若存在缓存边界、调度抖动或带宽瓶颈，则会出现分段变化，这正是实验二后续分析的重点依据。
+
+\subsubsection{统一结果语义与可比性}
+
+两个实验在数学对象上不同（\(\Theta(n^2)\) vs. \(\Theta(n)\)），
+但在领域输出上共享同一结果模式：
+\begin{equation}
+\texttt{BenchmarkResult}=
+(\text{name},\ \text{algorithm},\ n,\ \text{samples},\ \text{best},\ \text{mean},\ \text{median},\ \sigma,\ \hat\alpha,\ \hat\beta,\ R^2,\ \text{notes}).
+\end{equation}
+
+这种“问题异构、输出同构”的设计让应用层和可视化层无需感知算法内部差异，
+只基于统一统计语义即可完成跨实验对比、回归检测与报告生成。
