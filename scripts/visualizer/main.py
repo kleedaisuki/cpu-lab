@@ -1,4 +1,4 @@
-﻿"""CLI entrypoint for visualizer pipeline."""
+"""CLI entrypoint for visualizer pipeline."""
 
 from __future__ import annotations
 
@@ -22,6 +22,12 @@ def _build_parser() -> argparse.ArgumentParser:
         type=Path,
         default=Path("data/processed/summary"),
         help="Directory for summary CSV outputs.",
+    )
+    parser.add_argument(
+        "--sum-raw-file",
+        type=str,
+        default="benchmark_results_after_fix.csv",
+        help="sum_reduce raw csv filename under input-root/sum_reduce.",
     )
     return parser
 
@@ -87,7 +93,7 @@ def _generate_report(prepared: Dict[str, object], report_path: Path, generated_f
 def main() -> int:
     args = _build_parser().parse_args()
 
-    prepared = load_and_prepare(args.input_root, args.config_root)
+    prepared = load_and_prepare(args.input_root, args.config_root, args.sum_raw_file)
     export_summary_tables(prepared, args.export_summary)
     figure_paths = generate_plots(prepared, args.out_root)
     _generate_report(prepared, args.export_summary / "report.md", figure_paths)

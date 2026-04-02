@@ -230,10 +230,24 @@ def _best_config_table(all_domains: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows).sort_values(["domain", "problem_size"]).reset_index(drop=True)
 
 
-def load_and_prepare(input_root: Path, config_root: Path) -> Dict[str, object]:
-    """Load raw/config CSVs, compute derived metrics, and return tidy tables."""
+def _resolve_sum_raw_path(input_root: Path, sum_raw_file: str) -> Path:
+    """解析 sum_reduce 输入文件路径，优先用户指定，缺失时回退默认文件 / Resolve sum_reduce input path with fallback."""
+    preferred = input_root / "sum_reduce" / sum_raw_file
+    if preferred.exists():
+        return preferred
+    fallback = input_root / "sum_reduce" / "benchmark_results.csv"
+    if sum_raw_file != "benchmark_results.csv" and fallback.exists():
+        return fallback
+    return preferred
+
+def load_and_prepare(
+    input_root: Path,
+    config_root: Path,
+    sum_raw_file: str = "benchmark_results_after_fix.csv",
+) -> Dict[str, object]:
+    """加载原始/配置 CSV 并构造衍生指标 / Load raw/config CSVs and compute derived metrics."""
     matrix_raw = _read_csv(input_root / "matrix_dot" / "benchmark_results.csv")
-    sum_raw = _read_csv(input_root / "sum_reduce" / "benchmark_results.csv")
+    sum_raw = _read_csv(_resolve_sum_raw_path(input_root, sum_raw_file))
     matrix_cfg = _read_csv(config_root / "benchmark_matrix.csv")
     sum_cfg = _read_csv(config_root / "benchmark_sum.csv")
 
