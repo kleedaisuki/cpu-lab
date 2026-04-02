@@ -1,2 +1,23 @@
-\subsection{01 matrix dot naive}
-待补充内容。
+\subsection{矩阵列点积：Naive 策略}
+
+\texttt{matrix\_dot\_naive} 的定义最直接：对每一列 \(j\) 与输入向量 \(\mathbf{v}\) 做点积（dot product），
+\begin{equation}
+ o_j = \sum_{i=1}^{m} A_{ij}v_i,\quad j=1,\dots,n.
+\end{equation}
+其中 \(\mathbf{A}\in\mathbb{R}^{m\times n}\)，输出 \(\mathbf{o}\in\mathbb{R}^{n}\)。
+
+该策略的循环结构是“列外层、行内层”，实现语义清晰，且与数学定义同构（isomorphic）。
+时间复杂度（time complexity）为
+\begin{equation}
+T(m,n)=\Theta(mn),
+\end{equation}
+空间复杂度（space complexity）除输出外为 \(\Theta(1)\)。
+
+在工程约束上，该策略会先检查维度一致性：
+\begin{equation}
+\texttt{matrix.rows()} = \texttt{vector.size()}.
+\end{equation}
+若不满足则抛出 \texttt{std::invalid\_argument}，避免产生静默错误（silent error）。
+
+作为基线（baseline），Naive 的价值并不在峰值性能，而在于：
+它提供最小语义噪声（minimal semantic noise）的参考实现，便于与后续优化策略做可解释对比。

@@ -181,8 +181,8 @@ cpu-lab/
 │   │   │   │   ├── matrix_normalized_curve.png
 │   │   │   │   └── matrix_speedup_heatmap.png
 │   │   │   └── 02_sum_reduce/
-│   │   │       ├── matrix_normalized_curve.png
-│   │   │       └── matrix_speedup_heatmap.png
+│   │   │       ├── sum_normalized_curve.png
+│   │   │       └── sum_speedup_heatmap.png
 │   │   └── 04_superscalar_winding_exploration/
 │   │       └── 01_sum_anomaly_slowdown/
 │   │           ├── sum_anomaly_slowdown.png

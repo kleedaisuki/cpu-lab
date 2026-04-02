@@ -1,2 +1,32 @@
-\subsection{05 sum superscalar}
-待补充内容。
+\subsection{求和归约：Superscalar 策略}
+
+\texttt{sum\_superscalar} 的核心思想是把单链依赖拆成 \(L\) 条独立链路（lanes）：
+\begin{equation}
+ s = \sum_{\ell=1}^{L}\left(\sum_{k} x_{kL+\ell}\right),\quad L>0.
+\end{equation}
+
+这种写法在不改变数学结果的前提下提升可并行性：
+处理器可并发推进多条加法链，减少单链延迟瓶颈（latency bottleneck）。
+复杂度仍为
+\begin{equation}
+T(n,L)=\Theta(n),
+\end{equation}
+但常数因子受 \(L\) 和微架构（microarchitecture）共同影响。
+
+实现包含两级分派（dispatch）：
+\begin{equation}
+\texttt{lane\_count}\in\{1,2,4,8,16\}\Rightarrow\text{固定模板快路径（fixed-template fast path）},
+\end{equation}
+\begin{equation}
+\text{其他 }\texttt{lane\_count}\Rightarrow\text{运行期通用路径（runtime generic path）}.
+\end{equation}
+其中快路径通过编译期展开（compile-time unrolling）减少循环控制开销；
+通用路径则保证参数空间的完备性（completeness）。
+
+当 \(L\) 过大时，寄存器压力（register pressure）与调度开销可能反向恶化性能。
+因此 Superscalar 的关键不是“lane 越多越好”，而是寻找平台相关的最优 \(L^{\ast}\)：
+\begin{equation}
+L^{\ast} = \arg\min_{L>0} T(n,L).
+\end{equation}
+
+

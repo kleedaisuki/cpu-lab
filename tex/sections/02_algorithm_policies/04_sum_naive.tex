@@ -1,2 +1,20 @@
-\subsection{04 sum naive}
-待补充内容。
+\subsection{求和归约：Naive 策略}
+
+\texttt{sum\_naive} 使用单链累加（single accumulation chain）：
+\begin{equation}
+ s = \sum_{i=1}^{n} x_i.
+\end{equation}
+
+其复杂度为
+\begin{equation}
+T(n)=\Theta(n),\qquad S(n)=\Theta(1).
+\end{equation}
+
+该策略在指令级并行（instruction-level parallelism, ILP）上较弱：
+每次加法依赖前一轮结果，形成长依赖链（long dependency chain）。
+但它拥有最小控制复杂度（minimal control complexity）和最高可解释性，
+因此适合作为归约实验的基线。
+
+策略对象在每次 \texttt{run\_once()} 后更新标量输出，并通过
+\texttt{output\_fingerprint()} 产生 64-bit 指纹（fingerprint），
+用于在编排层记录结果一致性（result consistency）证据。

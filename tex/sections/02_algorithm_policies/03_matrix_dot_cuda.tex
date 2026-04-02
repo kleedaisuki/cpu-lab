@@ -1,2 +1,26 @@
-\subsection{03 matrix dot cuda}
-待补充内容。
+\subsection{矩阵列点积：CUDA 策略}
+
+\texttt{matrix\_dot\_cuda} 将每个输出列 \(j\) 映射到一个 GPU 线程（thread），线程内部完成行向量归约：
+\begin{equation}
+ o_j = \sum_{i=1}^{m}A_{ij}v_i.
+\end{equation}
+
+在网格配置（grid configuration）上，令每块线程数为 \(T_b\)，则块数为
+\begin{equation}
+N_b = \left\lceil\frac{n}{T_b}\right\rceil.
+\end{equation}
+策略要求 \(T_b>0\) 且不超过设备 \texttt{maxThreadsPerBlock}，否则视为无效配置。
+
+从成本模型看，单次调用总时间可写为
+\begin{equation}
+T_{\text{cuda}} \approx T_{\text{H2D}} + T_{\text{kernel}} + T_{\text{D2H}} + T_{\text{sync}},
+\end{equation}
+其中 H2D/D2H 表示主机-设备数据传输（host-device transfer）。
+因此 CUDA 优势通常在问题规模足够大时出现；小规模场景常被传输与同步开销淹没。
+
+实现层面采用了 RAII（Resource Acquisition Is Initialization）设备缓冲封装，
+并在每个 CUDA API 调用点做错误检查。
+若运行环境不支持 CUDA 或运行失败，应用层会触发回退（fallback）到 cache 策略，
+从而保证批量实验不中断。
+
+这一路径体现了“性能优先但可用性兜底（availability first fallback）”的工程折中。

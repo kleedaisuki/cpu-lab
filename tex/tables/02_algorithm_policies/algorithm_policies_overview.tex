@@ -1,0 +1,17 @@
+\begin{table}[H]
+\centering
+\caption{算法策略总览（Algorithm Policies Overview）}
+\label{tab:algorithm_policies_overview}
+\small
+\begin{tabularx}{\textwidth}{l l l l l}
+\toprule
+策略 & 理论复杂度 & 并行性特征 & 主要优势 & 主要风险 \\
+\midrule
+\texttt{matrix\_dot\_naive} & $\Theta(mn)$ & 低 ILP，顺序列归约 & 语义最直接，基线稳定 & 缓存局部性较弱 \\
+\texttt{matrix\_dot\_cache} & $\Theta(mn)$ & 低-中 ILP，分块访存 & 提升 cache 命中，常数项更优 & 块大小 $B$ 选择敏感 \\
+\texttt{matrix\_dot\_cuda} & $\Theta(mn)$ & 高线程并行（GPU） & 大规模吞吐潜力高 & 传输/同步开销与环境依赖 \\
+\texttt{sum\_naive} & $\Theta(n)$ & 单链依赖，ILP 低 & 实现最简单，可解释性高 & 依赖链长导致吞吐受限 \\
+\texttt{sum\_superscalar} & $\Theta(n)$ & 多链并行，ILP 高 & 可降低加法依赖延迟 & lane 过大导致寄存器压力 \\
+\bottomrule
+\end{tabularx}
+\end{table}

@@ -1,2 +1,31 @@
-\subsection{02 matrix dot cache}
-待补充内容。
+\subsection{矩阵列点积：Cache 策略}
+
+\texttt{matrix\_dot\_cache} 与 Naive 在数学上等价，但重排了访存局部性（memory locality）友好的执行顺序。
+在实现上，外层遍历行 \(i\)，并把列方向按块宽 \(B\) 分块（tiling）：
+\begin{equation}
+ o_j \leftarrow o_j + A_{ij}v_i,\quad
+j\in[b,\min(b+B,n)).
+\end{equation}
+
+该重排不改变计算结果：
+\begin{equation}
+\forall j,\quad o_j=\sum_{i=1}^{m}A_{ij}v_i,
+\end{equation}
+但通常可改善缓存命中（cache hit）与预取行为（prefetch behavior）。
+
+复杂度仍为
+\begin{equation}
+T(m,n,B)=\Theta(mn),
+\end{equation}
+差异主要体现在常数项（constant factor）。
+当 \(B\) 与缓存层级匹配时，实测性能往往优于 Naive；
+当 \(B\) 过小或过大时，分块调度开销与缓存压力可能抵消收益。
+
+参数合法性条件为
+\begin{equation}
+B>0,
+\end{equation}
+否则抛出 \texttt{std::invalid\_argument}。
+
+从策略设计角度，Cache 版本体现了“先保持语义不变，再优化数据路径（data path）”的原则，
+是本项目中最典型的“零语义风险优化”（semantics-preserving optimization）。
