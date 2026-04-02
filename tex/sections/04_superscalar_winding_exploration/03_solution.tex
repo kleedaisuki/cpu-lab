@@ -1,2 +1,10 @@
-\subsection{03 solution}
-待补充内容。
+\subsection{修复策略与效果回归}
+修复策略遵循“把特殊情况改写成常态路径”的工程原则：先消除热路径中的可避免成本，再给编译器提供可优化的稳定形态。
+
+1. 去分配化（No Allocation on Hot Path）：将常见 lane 场景改为固定大小缓冲与直接累加，避免每次调用触发堆分配。
+2. 编译期特化（Compile-Time Specialization）：对常见 lane（如 1/2/4/8/16）提供专门路径，让编译器能稳定做展开与寄存器优化。
+3. 基准稳健化（Benchmark Robustness）：统一在 Release 构建下评测，并提高 warmup/run-count 以抑制抖动对结论的污染。
+
+修复后结果已在第 3 章“实验结果”中给出（见 \ref{fig:sum_normalized_curve}、\ref{fig:sum_speedup_heatmap} 与表 \ref{tab:sum_reduce_after_fix_results}）：superscalar 在全规模区间恢复并显著超过 naive，说明此前瓶颈主要来自实现与实验配置，而非 superscalar 归约思想本身。
+
+

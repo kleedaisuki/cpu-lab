@@ -1,2 +1,11 @@
-\subsection{02 why combination effect happens}
-待补充内容。
+\subsection{机理分析：组合效应为何出现}
+异常结果并不意味着 superscalar 思路本身错误，而是三个因素的组合效应（Combination Effect）掩盖了计算核心收益。
+
+第一，动态分配（Dynamic Allocation）进入热路径（Hot Path）。旧实现在每次归约调用中都构造 lane 容器，使计时结果混入堆分配与初始化开销；相较之下，naive 路径仅保留单累加链，固定成本更低。
+
+第二，lane 数量在运行期决定（Runtime Lane Count），限制编译器的常量传播（Constant Propagation）、循环展开（Loop Unrolling）与寄存器分配（Register Allocation）。结果是“多路累加”未稳定映射为寄存器并行链，反而可能退化为频繁读写中间状态。
+
+第三，构建与采样配置会放大前两项代价。在非 Release 优化等级或采样不足时，固定开销占比更高、抖动更明显，导致基准更容易测到“实现形态惩罚”而非“算法并行收益”。
+
+需要强调的是：单一因素通常不足以造成全区间系统性反转；只有在“热路径分配 + 运行期 lane + 弱优化/轻采样”叠加时，才会出现表 \ref{tab:sum_reduce_before_fix_results} 中这种持续低于 $1.0\times$ 的整体降速。
+

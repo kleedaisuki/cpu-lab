@@ -1,2 +1,23 @@
-\subsection{01 sum anomaly slowdown}
-待补充内容。
+\subsection{异常现象：Superscalar 系统性慢于 Naive}
+本小节聚焦一个反直觉现象：在早期实验中，理论上更具指令级并行性（Instruction-Level Parallelism, ILP）的 \texttt{sum\_superscalar} 反而系统性慢于 \texttt{sum\_naive}。这说明问题并非“单一参数调错”，而是实现、编译优化与实验配置共同作用后的组合偏差。
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.82\textwidth]{figures/04_superscalar_winding_exploration/01_sum_anomaly_slowdown/sum_anomaly_slowdown.png}
+\caption{Sum Reduce 异常降速现象（Anomalous Slowdown）}
+\label{fig:sum_anomaly_slowdown}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.82\textwidth]{figures/04_superscalar_winding_exploration/01_sum_anomaly_slowdown/sum_normalized_curve.png}
+\caption{Sum Reduce 归一化耗时曲线（Before Fix）}
+\label{fig:sum_normalized_curve_before_fix}
+\end{figure}
+
+图 \ref{fig:sum_anomaly_slowdown} 与图 \ref{fig:sum_normalized_curve_before_fix} 共同表明：在多个问题规模上，superscalar 路径归一化耗时整体高于 naive，且不同 lane 配置均未表现出稳定优势。
+
+\input{tables/03_experiments/01_sum_reduce_before_fix_results}
+
+表 \ref{tab:sum_reduce_before_fix_results} 进一步量化了异常：在 $1024 \sim 524288$ 全区间内，最佳 superscalar 配置的 speedup 始终低于 $1.0\times$，约为 $0.48\times \sim 0.62\times$。因此，“超标量策略失效”在该阶段是可重复、可观测的工程事实，而非随机波动。
+

@@ -171,10 +171,10 @@ cpu-lab/
 │   │   │   ├── 01_sum_anomaly_slowdown.tex
 │   │   │   ├── 02_why_combination_effect_happens.tex
 │   │   │   └── 03_solution.tex
-│   │   ├── 05_agents_build_systems/
-│   │   │   ├── 01_codex.tex
-│   │   │   ├── 02_context_engineering.tex
-│   │   │   └── 03_human_in_the_loop.tex
+│   │   └── 05_agents_build_systems/
+│   │       ├── 01_codex.tex
+│   │       ├── 02_context_engineering.tex
+│   │       └── 03_human_in_the_loop.tex
 │   ├── figures/
 │   │   ├── 03_experiments/
 │   │   │   ├── 01_matrix_dot/
@@ -188,11 +188,11 @@ cpu-lab/
 │   │           ├── sum_anomaly_slowdown.png
 │   │           └── sum_normalized_curve.png
 │   ├── tables/
-│   │   ├── 01_architecture
+│   │   ├── 01_architecture/
 │   │   │   └── 01_ddd_layers_and_functions.tex
-│   │   ├── 02_algorithm_policies
+│   │   ├── 02_algorithm_policies/
 │   │   │   └── algorithm_policies_overview.tex
-│   │   ├── 03_experiments
+│   │   ├── 03_experiments/
 │   │   │   ├── 01_sum_reduce_before_fix_results.tex
 │   │   │   ├── 02_sum_reduce_after_fix_results.tex
 │   │   │   └── 03_matrix_dot_results.tex
