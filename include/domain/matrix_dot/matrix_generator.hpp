@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "domain/matrix_dot/matrix.hpp"
 #include "domain/matrix_dot/vector.hpp"
@@ -24,6 +24,9 @@ namespace cpu_lab::domain::matrix_dot
 
         /** @brief cache 优化算法（cache）；Row-wise cache-friendly traversal. */
         Cache = 1U,
+
+        /** @brief CUDA 算法（CUDA）；GPU-accelerated policy when CUDA path is available. */
+        Cuda = 2U,
     };
 
     /**
@@ -34,7 +37,7 @@ namespace cpu_lab::domain::matrix_dot
         /** @brief 用例标识（case id）；Stable identifier for one test case. */
         std::string case_id{};
 
-        /** @brief 算法名称（algorithm name）；Algorithm selector text, e.g. naive/cache. */
+        /** @brief 算法名称（algorithm name）；Algorithm selector text, e.g. naive/cache/cuda. */
         std::string algorithm{};
 
         /** @brief 矩阵行数（matrix rows）；Number of matrix rows (M). */
@@ -167,3 +170,4 @@ namespace cpu_lab::domain::matrix_dot
     };
 
 } // namespace cpu_lab::domain::matrix_dot
+

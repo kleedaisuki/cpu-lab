@@ -1,4 +1,5 @@
-﻿#include "domain/matrix_dot/matrix_dot_cache.hpp"
+#include "domain/matrix_dot/matrix_dot_cache.hpp"
+#include "domain/matrix_dot/matrix_dot_cuda.hpp"
 #include "domain/matrix_dot/matrix_dot_naive.hpp"
 #include "domain/matrix_dot/matrix_generator.hpp"
 #include "domain/shared/algorithm_orchestrator.hpp"
@@ -12,11 +13,12 @@
 #include <vector>
 
 using cpu_lab::domain::matrix_dot::MatrixDotAlgorithm;
+using cpu_lab::domain::matrix_dot::MatrixDotCache;
 using cpu_lab::domain::matrix_dot::MatrixDotCtorArgs;
 using cpu_lab::domain::matrix_dot::MatrixDotCtorArgsGenerator;
-using cpu_lab::domain::matrix_dot::MatrixDotTestCaseRow;
-using cpu_lab::domain::matrix_dot::MatrixDotCache;
+using cpu_lab::domain::matrix_dot::MatrixDotCuda;
 using cpu_lab::domain::matrix_dot::MatrixDotNaive;
+using cpu_lab::domain::matrix_dot::MatrixDotTestCaseRow;
 using cpu_lab::domain::shared::AlgorithmOrchestrator;
 using cpu_lab::domain::shared::AlgorithmOrchestratorConfig;
 using cpu_lab::infrastructure::csv::CsvReadOptions;
@@ -64,7 +66,8 @@ int main()
 
     AlgorithmOrchestrator orchestrator{};
 
-    for (const MatrixDotCtorArgs &args : args_list) {
+    for (const MatrixDotCtorArgs &args : args_list)
+    {
         AlgorithmOrchestratorConfig config{};
         config.benchmark_name = "matrix_dot";
         config.problem_size = args.problem_size();
@@ -72,8 +75,10 @@ int main()
         config.warmup_rounds = 1U;
         config.notes = args.case_id + ":" + args.notes;
 
-        switch (args.algorithm) {
-        case MatrixDotAlgorithm::Naive: {
+        switch (args.algorithm)
+        {
+        case MatrixDotAlgorithm::Naive:
+        {
             const auto result = orchestrator.operator()<MatrixDotNaive>(
                 config,
                 args.matrix,
@@ -83,7 +88,8 @@ int main()
             break;
         }
 
-        case MatrixDotAlgorithm::Cache: {
+        case MatrixDotAlgorithm::Cache:
+        {
             const auto result = orchestrator.operator()<MatrixDotCache>(
                 config,
                 args.matrix,
@@ -93,31 +99,80 @@ int main()
             assert(result.algorithm == "matrix_dot_cache");
             break;
         }
+
+        case MatrixDotAlgorithm::Cuda:
+        {
+            bool cuda_ran = false;
+            try
+            {
+                const auto result = orchestrator.operator()<MatrixDotCuda>(
+                    config,
+                    args.matrix,
+                    args.vector);
+                assert(result.is_valid());
+                assert(result.algorithm == "matrix_dot_cuda");
+                cuda_ran = true;
+            }
+            catch (const std::exception &)
+            {
+                const auto fallback = orchestrator.operator()<MatrixDotCache>(
+                    config,
+                    args.matrix,
+                    args.vector,
+                    args.cache_block_cols);
+                assert(fallback.is_valid());
+                assert(fallback.algorithm == "matrix_dot_cache");
+            }
+
+            (void)cuda_ran;
+            break;
+        }
+
+        default:
+            assert(false);
+            break;
         }
     }
 
+    {
+        MatrixDotTestCaseRow cuda_row = rows[0];
+        cuda_row.algorithm = "cuda";
+        const MatrixDotCtorArgs cuda_args = MatrixDotCtorArgsGenerator::make_ctor_args(cuda_row);
+        assert(cuda_args.algorithm == MatrixDotAlgorithm::Cuda);
+    }
+
+    {
+        MatrixDotTestCaseRow cuda_row = rows[0];
+        cuda_row.algorithm = "matrix_dot_cuda";
+        const MatrixDotCtorArgs cuda_args = MatrixDotCtorArgsGenerator::make_ctor_args(cuda_row);
+        assert(cuda_args.algorithm == MatrixDotAlgorithm::Cuda);
+    }
+
     bool threw_bad_algorithm = false;
-    try {
+    try
+    {
         MatrixDotTestCaseRow bad = rows[0];
         bad.algorithm = "unknown_algo";
         (void)MatrixDotCtorArgsGenerator::make_ctor_args(bad);
     }
-    catch (const std::invalid_argument &) {
+    catch (const std::invalid_argument &)
+    {
         threw_bad_algorithm = true;
     }
     assert(threw_bad_algorithm);
 
     bool threw_bad_block = false;
-    try {
+    try
+    {
         MatrixDotTestCaseRow bad = rows[1];
         bad.cache_block_cols = 0U;
         (void)MatrixDotCtorArgsGenerator::make_ctor_args(bad);
     }
-    catch (const std::invalid_argument &) {
+    catch (const std::invalid_argument &)
+    {
         threw_bad_block = true;
     }
     assert(threw_bad_block);
 
     return 0;
 }
-

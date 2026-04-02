@@ -1,4 +1,4 @@
-﻿#include "domain/matrix_dot/matrix_generator.hpp"
+#include "domain/matrix_dot/matrix_generator.hpp"
 
 #include "infrastructure/csv/row.hpp"
 
@@ -86,6 +86,10 @@ namespace cpu_lab::domain::matrix_dot
             return MatrixDotAlgorithm::Cache;
         }
 
+        if (normalized == "cuda" || normalized == "matrix_dot_cuda") {
+            return MatrixDotAlgorithm::Cuda;
+        }
+
         throw std::invalid_argument("unknown matrix_dot algorithm: '" + std::string(algorithm) + "'.");
     }
 
@@ -143,3 +147,4 @@ namespace cpu_lab::domain::matrix_dot
     }
 
 } // namespace cpu_lab::domain::matrix_dot
+

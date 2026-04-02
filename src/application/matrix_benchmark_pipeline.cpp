@@ -1,13 +1,16 @@
-﻿#include "application/matrix_benchmark_pipeline.hpp"
+#include "application/matrix_benchmark_pipeline.hpp"
 
 #include "domain/matrix_dot/matrix_dot_cache.hpp"
+#include "domain/matrix_dot/matrix_dot_cuda.hpp"
 #include "domain/matrix_dot/matrix_dot_naive.hpp"
 #include "domain/matrix_dot/matrix_generator.hpp"
 #include "domain/shared/algorithm_orchestrator.hpp"
 #include "infrastructure/csv/csv_reader.hpp"
 #include "infrastructure/csv/csv_writer.hpp"
 
+#include <exception>
 #include <stdexcept>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -94,6 +97,34 @@ namespace cpu_lab::application
                     args.vector,
                     args.cache_block_cols));
                 break;
+            }
+
+            case domain::matrix_dot::MatrixDotAlgorithm::Cuda:
+            {
+                try
+                {
+                    results.push_back(orchestrator.operator()<domain::matrix_dot::MatrixDotCuda>(
+                        run_config,
+                        args.matrix,
+                        args.vector));
+                }
+                catch (const std::exception &error)
+                {
+                    domain::shared::AlgorithmOrchestratorConfig fallback_config = run_config;
+                    fallback_config.notes += "; cuda_fallback=" + std::string(error.what());
+
+                    results.push_back(orchestrator.operator()<domain::matrix_dot::MatrixDotCache>(
+                        fallback_config,
+                        args.matrix,
+                        args.vector,
+                        args.cache_block_cols));
+                }
+                break;
+            }
+
+            default:
+            {
+                throw std::invalid_argument("unsupported MatrixDotAlgorithm enum value.");
             }
             }
         }

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <cstddef>
 #include <cstdint>
@@ -49,6 +49,27 @@ namespace cpu_lab::infrastructure::system
 
         /** @brief 物理内存容量（physical memory）；Total physical memory in bytes if available. */
         std::uint64_t total_physical_memory_bytes{0ULL};
+
+        /** @brief CUDA 构建开关（CUDA build flag）；Whether matrix-dot CUDA policy is compiled in. */
+        bool cuda_matrix_dot_build_enabled{false};
+
+        /** @brief CUDA Runtime 可达性（CUDA runtime reachable）；Whether CUDA Runtime API probe succeeded. */
+        bool cuda_runtime_available{false};
+
+        /** @brief CUDA 设备可用性（CUDA device available）；Whether at least one CUDA device is visible. */
+        bool cuda_device_available{false};
+
+        /** @brief CUDA 可见设备数（CUDA device count）；Number of visible CUDA devices, if probe succeeded. */
+        std::size_t cuda_device_count{0U};
+
+        /** @brief CUDA Runtime 版本（CUDA runtime version）；Semantic version if known, otherwise fallback text. */
+        std::string cuda_runtime_version{"n/a"};
+
+        /** @brief CUDA Driver 版本（CUDA driver version）；Semantic version if known, otherwise fallback text. */
+        std::string cuda_driver_version{"n/a"};
+
+        /** @brief CUDA 状态摘要（CUDA status）；Human-readable probe result and fallback reason. */
+        std::string cuda_status{"not probed"};
     };
 
     /**

@@ -1,4 +1,4 @@
-﻿#include "interfaces/cli/cli_parser.hpp"
+#include "interfaces/cli/cli_parser.hpp"
 #include "interfaces/cli/validation_service.hpp"
 
 #include <cassert>
@@ -36,7 +36,7 @@ int main()
     write_text_file(
         matrix_valid_path,
         "case_id,algorithm,rows,cols,matrix_base,matrix_row_step,matrix_col_step,vector_base,vector_step,cache_block_cols,notes\n"
-        "m1,naive,3,4,1.0,0.1,0.01,0.5,0.02,8,ok\n");
+        "m1,matrix_dot_cuda,3,4,1.0,0.1,0.01,0.5,0.02,8,ok\n");
 
     write_text_file(
         matrix_invalid_path,
@@ -97,3 +97,4 @@ int main()
 
     return 0;
 }
+

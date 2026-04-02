@@ -129,7 +129,6 @@ cpu-lab/
 │   │       └── sum_superscalar.cpp # algorithm policy
 │   │
 │   ├── application/
-│   │   ├── benchmark_pipeline.cpp # BenchmarkPipeline 基类接口
 │   │   ├── matrix_benchmark_pipeline.cpp
 │   │   └── sum_reduce_benchmark_pipeline.cpp
 │   │

@@ -1,9 +1,9 @@
-﻿#include "infrastructure/system/platform_info.hpp"
+#include "infrastructure/system/platform_info.hpp"
 
 #include <algorithm>
 #include <array>
 #include <cctype>
-#include <cmath>
+#include <cstdint>
 #include <limits>
 #include <new>
 #include <sstream>
@@ -24,6 +24,12 @@
 #endif
 #endif
 
+#if defined(CPU_LAB_ENABLE_CUDA_MATRIX_DOT)
+extern "C" int cudaRuntimeGetVersion(int *runtimeVersion);
+extern "C" int cudaDriverGetVersion(int *driverVersion);
+extern "C" int cudaGetDeviceCount(int *count);
+#endif
+
 namespace cpu_lab::infrastructure::system
 {
     namespace
@@ -33,6 +39,127 @@ namespace cpu_lab::infrastructure::system
 
         /** @brief 默认 L1 数据缓存（default L1D）；Conservative L1 data cache fallback bytes. */
         constexpr std::size_t kDefaultL1DataCacheBytes = 32U * 1024U;
+
+#if defined(CPU_LAB_ENABLE_CUDA_MATRIX_DOT)
+        /** @brief CUDA 成功码（CUDA success code）；Numeric value of cudaSuccess. */
+        constexpr int kCudaSuccess = 0;
+#endif
+
+        /**
+         * @brief CUDA 探测结果（CUDA probe result）；Internal CUDA runtime probe payload.
+         */
+        struct CudaProbeResult final
+        {
+            /** @brief 构建启用（build enabled）；Whether CUDA policy is compiled. */
+            bool build_enabled{false};
+
+            /** @brief Runtime 可达（runtime reachable）；Whether CUDA Runtime API probe succeeded. */
+            bool runtime_available{false};
+
+            /** @brief 设备可见（device visible）；Whether at least one CUDA device is available. */
+            bool device_available{false};
+
+            /** @brief 设备数量（device count）；Visible CUDA device count. */
+            std::size_t device_count{0U};
+
+            /** @brief Runtime 版本（runtime version）；Formatted CUDA Runtime version text. */
+            std::string runtime_version{"n/a"};
+
+            /** @brief Driver 版本（driver version）；Formatted CUDA Driver version text. */
+            std::string driver_version{"n/a"};
+
+            /** @brief 状态摘要（status）；Human-readable status with fallback rationale. */
+            std::string status{"not probed"};
+        };
+
+        /**
+         * @brief 布尔值转文本（bool to text）；Convert bool to stable lowercase text.
+         * @param value 布尔值（boolean value）。
+         * @return 文本（text），"true" 或 "false"。
+         */
+        [[nodiscard]] std::string bool_to_text(const bool value)
+        {
+            return value ? "true" : "false";
+        }
+
+        /**
+         * @brief 格式化 CUDA 版本号（format CUDA version）；Convert packed CUDA version integer to semantic string.
+         * @param packed_version 打包版本（packed version），例如 12040。
+         * @return 语义版本文本（semantic version text）。
+         */
+        [[nodiscard]] std::string format_cuda_version(const int packed_version)
+        {
+            if (packed_version <= 0)
+            {
+                return "n/a";
+            }
+
+            const int major = packed_version / 1000;
+            const int minor = (packed_version % 1000) / 10;
+            return std::to_string(major) + "." + std::to_string(minor);
+        }
+
+        /**
+         * @brief 探测 CUDA 状态（probe CUDA）；Collect CUDA build/runtime/device status with fallback reason.
+         * @return CUDA 探测结果（CUDA probe result）。
+         */
+        [[nodiscard]] CudaProbeResult probe_cuda_support()
+        {
+            CudaProbeResult probe{};
+
+#if defined(CPU_LAB_ENABLE_CUDA_MATRIX_DOT)
+            probe.build_enabled = true;
+
+            int runtime_version = 0;
+            const int runtime_status = cudaRuntimeGetVersion(&runtime_version);
+            if (runtime_status != kCudaSuccess)
+            {
+                probe.status =
+                    "CUDA runtime API is unreachable (cudaRuntimeGetVersion failed); fallback to CPU policies.";
+                return probe;
+            }
+
+            probe.runtime_available = true;
+            probe.runtime_version = format_cuda_version(runtime_version);
+
+            int driver_version = 0;
+            const int driver_status = cudaDriverGetVersion(&driver_version);
+            if (driver_status == kCudaSuccess)
+            {
+                probe.driver_version = format_cuda_version(driver_version);
+            }
+
+            int device_count = 0;
+            const int device_status = cudaGetDeviceCount(&device_count);
+            if (device_status != kCudaSuccess)
+            {
+                probe.status =
+                    "CUDA runtime is present but device enumeration failed (cudaGetDeviceCount); fallback to CPU policies.";
+                return probe;
+            }
+
+            if (device_count < 0)
+            {
+                device_count = 0;
+            }
+
+            probe.device_count = static_cast<std::size_t>(device_count);
+            probe.device_available = (probe.device_count > 0U);
+
+            if (probe.device_available)
+            {
+                probe.status = "CUDA runtime ready with visible device(s).";
+            }
+            else
+            {
+                probe.status = "CUDA runtime reachable but no visible CUDA device; fallback to CPU policies.";
+            }
+#else
+            probe.status = "matrix_dot_cuda policy is not built; fallback to CPU policies.";
+#endif
+
+            return probe;
+        }
 
         /**
          * @brief 清理首尾空白（trim）；Trim leading/trailing ASCII spaces.
@@ -334,6 +461,16 @@ namespace cpu_lab::infrastructure::system
         snapshot.cache_line_bytes = detect_cache_line_bytes();
         snapshot.l1_data_cache_bytes = detect_l1_data_cache_bytes();
         snapshot.total_physical_memory_bytes = detect_total_physical_memory_bytes();
+
+        const CudaProbeResult cuda_probe = probe_cuda_support();
+        snapshot.cuda_matrix_dot_build_enabled = cuda_probe.build_enabled;
+        snapshot.cuda_runtime_available = cuda_probe.runtime_available;
+        snapshot.cuda_device_available = cuda_probe.device_available;
+        snapshot.cuda_device_count = cuda_probe.device_count;
+        snapshot.cuda_runtime_version = std::move(cuda_probe.runtime_version);
+        snapshot.cuda_driver_version = std::move(cuda_probe.driver_version);
+        snapshot.cuda_status = std::move(cuda_probe.status);
+
         return snapshot;
     }
 
@@ -398,7 +535,7 @@ namespace cpu_lab::infrastructure::system
         const PlatformSnapshot &snapshot)
     {
         std::vector<std::pair<std::string, std::string>> pairs{};
-        pairs.reserve(12U);
+        pairs.reserve(19U);
 
         pairs.emplace_back("os.name", snapshot.os_name);
         pairs.emplace_back("os.version", snapshot.os_version);
@@ -412,6 +549,13 @@ namespace cpu_lab::infrastructure::system
         pairs.emplace_back("memory.cache_line_bytes", std::to_string(snapshot.cache_line_bytes));
         pairs.emplace_back("memory.l1_data_cache_bytes", std::to_string(snapshot.l1_data_cache_bytes));
         pairs.emplace_back("memory.total_physical", format_bytes(snapshot.total_physical_memory_bytes));
+        pairs.emplace_back("cuda.matrix_dot_build_enabled", bool_to_text(snapshot.cuda_matrix_dot_build_enabled));
+        pairs.emplace_back("cuda.runtime_available", bool_to_text(snapshot.cuda_runtime_available));
+        pairs.emplace_back("cuda.device_available", bool_to_text(snapshot.cuda_device_available));
+        pairs.emplace_back("cuda.device_count", std::to_string(snapshot.cuda_device_count));
+        pairs.emplace_back("cuda.runtime_version", snapshot.cuda_runtime_version);
+        pairs.emplace_back("cuda.driver_version", snapshot.cuda_driver_version);
+        pairs.emplace_back("cuda.status", snapshot.cuda_status);
 
         return pairs;
     }
@@ -430,4 +574,3 @@ namespace cpu_lab::infrastructure::system
     }
 
 } // namespace cpu_lab::infrastructure::system
-

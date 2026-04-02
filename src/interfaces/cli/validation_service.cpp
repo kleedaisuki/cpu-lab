@@ -1,4 +1,4 @@
-﻿#include "interfaces/cli/validation_service.hpp"
+#include "interfaces/cli/validation_service.hpp"
 
 #include "application/matrix_benchmark_pipeline.hpp"
 #include "application/sum_reduce_benchmark_pipeline.hpp"
@@ -285,9 +285,9 @@ namespace cpu_lab::interfaces::cli
                 }
 
                 const std::string algorithm = to_lower_ascii(get_cell(record, header_index, "algorithm", report, scope));
-                if (!(algorithm == "naive" || algorithm == "cache"))
+                if (!(algorithm == "naive" || algorithm == "cache" || algorithm == "cuda" || algorithm == "matrix_dot_cuda"))
                 {
-                    add_issue(report, scope, "algorithm must be one of: naive, cache");
+                    add_issue(report, scope, "algorithm must be one of: naive, cache, cuda, matrix_dot_cuda");
                 }
 
                 std::size_t rows{0U};
@@ -549,3 +549,4 @@ namespace cpu_lab::interfaces::cli
     }
 
 } // namespace cpu_lab::interfaces::cli
+

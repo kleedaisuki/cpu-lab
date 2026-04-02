@@ -1,5 +1,6 @@
-﻿#include "infrastructure/system/platform_info.hpp"
+#include "infrastructure/system/platform_info.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <string>
@@ -31,8 +32,29 @@ int main()
     assert(!kv.empty());
     assert(kv.front().first == "os.name");
 
+    const auto has_cuda_status = std::any_of(
+        kv.begin(),
+        kv.end(),
+        [](const auto &entry)
+        {
+            return entry.first == "cuda.status";
+        });
+    assert(has_cuda_status);
+
     const std::string summary = PlatformInfo::to_summary(snapshot);
     assert(!summary.empty());
+    assert(summary.find("cuda.status=") != std::string::npos);
+
+    if (snapshot.cuda_matrix_dot_build_enabled)
+    {
+        assert(snapshot.cuda_runtime_available || snapshot.cuda_status.find("fallback") != std::string::npos);
+    }
+    else
+    {
+        assert(!snapshot.cuda_runtime_available);
+        assert(!snapshot.cuda_device_available);
+        assert(snapshot.cuda_device_count == 0U);
+    }
 
     return 0;
 }
