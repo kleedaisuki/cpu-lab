@@ -152,6 +152,7 @@ cpu-lab/
 │   ├── preamble.tex
 │   │
 │   ├── sections/
+│   │   ├── index.tex
 │   │   ├── 01_architecture/
 │   │   │   ├── 01_ddd.tex
 │   │   │   ├── 02_infrastructure.tex

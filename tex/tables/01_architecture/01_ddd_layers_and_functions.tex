@@ -1,0 +1,22 @@
+\begin{table}[H]
+\centering
+\caption{CPU-Lab 四层架构职责与功能映射}
+\label{tab:ddd-layers-and-functions}
+\small
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.25}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\begin{tabularx}{\textwidth}{L L L L}
+\toprule
+层（Layer） & 核心职责（Responsibility） & 代表模块（Representative Modules） & 依赖方向（Dependency Direction） \\
+\midrule
+Interfaces & 处理外部输入输出与参数校验，负责命令路由与用户交互边界 & \path{interfaces/cli/cli_parser}、\path{validation_service}、\path{command_dispatcher} & 仅依赖 Application \\
+
+Application & 编排用例（Use Case），组织实验流程，不承载具体算法细节 & \path{application/*_benchmark_pipeline} & 依赖 Domain 抽象与 Infrastructure 接口 \\
+
+Domain & 承载核心业务规则与算法策略（Algorithm Policy），定义实验对象和执行语义 & \path{domain/matrix_dot/*}、\path{domain/sum_reduce/*}、\path{domain/shared/algorithm_orchestrator} & 仅依赖必要抽象，不依赖 CLI \\
+
+Infrastructure & 提供技术能力实现，如计时、CSV 持久化、平台信息采集 & \path{infrastructure/timing/*}、\path{csv/*}、\path{system/*} & 被上层调用，不反向依赖上层业务 \\
+\bottomrule
+\end{tabularx}
+\end{table}
