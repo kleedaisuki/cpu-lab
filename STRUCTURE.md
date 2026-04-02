@@ -144,16 +144,62 @@ cpu-lab/
 ├── bin/
 ├── build/
 │
+├── docs/
+│   └── sum_reduce_superscalar_analysis.md
+│
 ├── tex/
 │   ├── main.tex
+│   ├── preamble.tex
+│   │
 │   ├── sections/
+│   │   ├── 01_architecture/
+│   │   │   ├── 01_ddd.tex
+│   │   │   ├── 02_infrastructure.tex
+│   │   │   ├── 03_domain.tex
+│   │   │   └── 04_application_and_interfaces.tex
+│   │   ├── 02_algorithm_policies/
+│   │   │   ├── 01_matrix_dot_naive.tex
+│   │   │   ├── 02_matrix_dot_cache.tex
+│   │   │   ├── 03_matrix_dot_cuda.tex
+│   │   │   ├── 04_sum_naive.tex
+│   │   │   └── 05_sum_superscalar.tex
+│   │   ├── 03_experiments/
+│   │   │   ├── 01_matrix_dot.tex
+│   │   │   └── 02_sum_reduce.tex
+│   │   ├── 04_superscalar_winding_exploration/
+│   │   │   ├── 01_sum_anomaly_slowdown.tex
+│   │   │   ├── 02_why_combination_effect_happens.tex
+│   │   │   └── 03_solution.tex
+│   │   ├── 05_agents_build_systems/
+│   │   │   ├── 01_codex.tex
+│   │   │   ├── 02_context_engineering.tex
+│   │   │   └── 03_human_in_the_loop.tex
 │   ├── figures/
+│   │   ├── 03_experiments/
+│   │   │   ├── 01_matrix_dot/
+│   │   │   │   ├── matrix_normalized_curve.png
+│   │   │   │   └── matrix_speedup_heatmap.png
+│   │   │   └── 02_sum_reduce/
+│   │   │       ├── matrix_normalized_curve.png
+│   │   │       └── matrix_speedup_heatmap.png
+│   │   └── 04_superscalar_winding_exploration/
+│   │       └── 01_sum_anomaly_slowdown/
+│   │           ├── sum_anomaly_slowdown.png
+│   │           └── sum_normalized_curve.png
 │   ├── tables/
-│   ├── references.bib
+│   │   ├── 01_architecture
+│   │   │   └── 01_ddd_layers_and_functions.tex
+│   │   ├── 02_algorithm_policies
+│   │   │   └── algorithm_policies_overview.tex
+│   │   ├── 03_experiments
+│   │   │   ├── 01_matrix_dot_results.tex
+│   │   │   └── 02_sum_reduce_results.tex
+│   │   └── 05_agents_build_systems/
+│   │       └── 01_differences_between_chatbot_and_agent.tex
 │   └── latexmkrc
 └── tests/
 ```
 
-实验一、二的 TestCase 以及 BenchmarkOutput 均需要继承 `row.hpp` 中的 `Row` 实现 `meta()` 方法来实现 reflection。
+实验一、二的 TestCase 以及 BenchmarkOutput 均需要满足 `row.hpp` 中的 `RowLike` 实现 `meta()` 方法来实现 reflection。
 
-`*.hpp` 文件仅含接口和声明，不包含类的实现；实现放在对应 `*.cpp` 中。
+`*.hpp` 文件仅含模板、接口和声明，不包含类的实现；实现放在对应 `*.cpp` 中。
