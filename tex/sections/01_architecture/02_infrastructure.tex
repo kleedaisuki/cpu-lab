@@ -1,2 +1,72 @@
-\subsection{02 infrastructure}
-待补充内容。
+\subsection{基础设施层（Infrastructure）实现细节}
+
+基础设施层的设计目标是把“技术噪声”与“领域语义”隔离：
+一方面，我们提供高精度计时（high-resolution timing）并通过最小二乘拟合（least-squares fitting）估计单位运行成本；
+另一方面，我们通过 RowLike 静态反射（static reflection-like metadata）统一 CSV 读写路径，避免重复样板代码。
+
+\subsubsection{高精度计时与最小二乘近似}
+
+设被测任务单次真实耗时为 $\tau$，固定开销（计时器调用、循环控制、调度扰动的均值项）为 $\beta$。
+对于第 $i$ 个采样点，我们令重复次数为 $x_i$（run\_count），观测总时间为 $y_i$（ns），可建模为
+\begin{equation}
+    y_i = \alpha x_i + \beta + \varepsilon_i,
+\end{equation}
+其中 $\alpha$ 是待估计的单位执行成本（ns/run），$\varepsilon_i$ 是噪声项。
+
+实现层面，\texttt{HighResolutionTimer::measure} 先执行若干 warmup，再对一组递增的 $x_i$ 采样，最后在
+\texttt{fit\_linear\_least\_squares} 中执行普通最小二乘（Ordinary Least Squares, OLS）。
+我们最小化
+\begin{equation}
+    \min_{\alpha,\beta}\sum_{i=1}^{n}(y_i-\alpha x_i-\beta)^2,
+\end{equation}
+并得到闭式解
+\begin{equation}
+    \hat{\alpha}=\frac{n\sum_i x_i y_i-\left(\sum_i x_i\right)\left(\sum_i y_i\right)}
+    {n\sum_i x_i^2-\left(\sum_i x_i\right)^2},
+\end{equation}
+\begin{equation}
+    \hat{\beta}=\frac{\sum_i y_i-\hat{\alpha}\sum_i x_i}{n}.
+\end{equation}
+
+拟合优度通过决定系数（coefficient of determination）衡量：
+\begin{equation}
+    R^2 = 1-\frac{SS_{res}}{SS_{tot}},\quad
+    SS_{res}=\sum_i(y_i-\hat{y}_i)^2,\quad
+    SS_{tot}=\sum_i(y_i-\bar{y})^2.
+\end{equation}
+当 $R^2\to 1$ 时，线性模型可较好解释“总耗时随 run\_count 线性增长”的假设。
+
+从工程鲁棒性看，当前实现还处理了两个关键退化场景：
+\begin{itemize}
+    \item 当分母 $n\sum x_i^2-(\sum x_i)^2$ 过小（采样点退化）时，回退为 $\hat{\alpha}=0$、$\hat{\beta}=\bar{y}$。
+    \item 当 $SS_{tot}\approx 0$（样本几乎常量）时，令 $R^2=1$，避免数值不稳定。
+\end{itemize}
+
+这种“多点拟合而非单次计时”的策略，本质上在统计层面分离了固定成本与线性成本，使跨规模比较更稳定。
+
+\subsubsection{RowLike：基于 concept 的静态多态与模板元编程}
+
+CSV 基础设施采用 RowLike 约束：
+\begin{equation}
+    \texttt{RowLike<RowT>} \iff \texttt{RowT::meta()} \text{ 可在编译期访问。}
+\end{equation}
+\texttt{meta()} 返回一个由 \texttt{RowField<OwnerT, ValueT>} 组成的 tuple，每个字段含列名与成员指针。
+这等价于为每个 Row 类型声明一份“编译期结构化模式（compile-time schema）”。
+
+在模板元编程（template metaprogramming, TMP）层面，框架通过 index sequence 与 fold expression 协同遍历 tuple 元信息，
+并在 \texttt{for\_each\_field} 中把字段名和成员引用绑定给回调。
+于是可以形成统一流水线：
+\begin{itemize}
+    \item \textbf{读路径}：CSV record $\rightarrow$ 按 header/ordinal 定位列 $\rightarrow$ \texttt{parse\_cell<T>} $\rightarrow$ 填充 Row 字段。
+    \item \textbf{写路径}：Row 字段 $\rightarrow$ \texttt{stringify\_cell} $\rightarrow$ CSV escaping $\rightarrow$ 输出。
+\end{itemize}
+
+其核心收益是静态多态（static polymorphism）：
+\begin{itemize}
+    \item 无虚函数分发（no virtual dispatch），类型错误前移到编译期。
+    \item 新增 Row 仅需补充 \texttt{meta()}，读写逻辑零侵入复用。
+    \item 同一机制同时驱动 \texttt{row\_header}、字段序列化、字段反序列化，保证结构一致性。
+\end{itemize}
+
+换言之，RowLike 把“数据结构定义”提升为单一事实来源（single source of truth, SSOT）：
+领域对象声明一次，基础设施读写自动获得一致行为，从而将模板复杂度封装在基础设施层内部。
