@@ -1,5 +1,5 @@
 \subsection{01 matrix dot}
-本小节展示矩阵列点积（\texttt{matrix\_dot}）实验的可视化结果，对比基线实现与 cache 优化实现在不同问题规模下的归一化耗时与加速比分布。
+本小节报告矩阵列点积（\texttt{matrix\_dot}）实验结果，比较基线实现（\texttt{matrix\_dot\_naive}）与 cache 优化实现（\texttt{matrix\_dot\_cache}）在不同问题规模下的运行特征。本文统一采用 \texttt{mean\_ns\_per\_run} 作为主要性能指标，并结合归一化曲线与加速比热力图进行分析。
 
 \begin{figure}[H]
 \centering
@@ -15,9 +15,8 @@
 \label{fig:matrix_speedup_heatmap}
 \end{figure}
 
-从图 \ref{fig:matrix_normalized_curve} 和图 \ref{fig:matrix_speedup_heatmap} 可以看到：
-随着规模增大，合适 tile 尺寸的 cache 策略收益更明显；在小规模输入上收益有限，但在大规模输入上呈现更稳定的正向加速。
+图 \ref{fig:matrix_normalized_curve} 显示，cache 优化在小规模区间收益有限，而在规模增大后相对优势逐步扩大。图 \ref{fig:matrix_speedup_heatmap} 进一步表明，tile 参数与问题规模存在显著耦合关系，错误的 tile 选择会削弱优化收益。
 
 \input{tables/03_experiments/03_matrix_dot_results}
 
-表 \ref{tab:matrix_dot_results} 进一步量化了不同规模下的最优 tile 选择与加速比；随着 n 增大，cache 优化的收益显著提升。
+表 \ref{tab:matrix_dot_results} 对最优配置进行了量化汇总。总体上，最优 tile 从中小规模的 64/128 逐步收敛到大规模下的 256，对应加速比由约 $1.02\times$ 提升至约 $2.03\times$，说明 cache 局部性优化在大工作集场景下更具统计稳定性与工程价值。

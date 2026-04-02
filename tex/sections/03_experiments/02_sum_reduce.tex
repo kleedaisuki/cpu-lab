@@ -1,6 +1,5 @@
 \subsection{02 sum reduce}
-本小节给出求和归约（\texttt{sum\_reduce}）在修复前后的实验对比。四张图中的后两张对应本小节：
-归一化曲线展示整体趋势，加速比热力图展示不同 lane 配置在各规模下的收益分布。
+本小节给出求和归约（\texttt{sum\_reduce}）在修复后的实验结果，比较基线实现（\texttt{sum\_naive}）与超标量实现（\texttt{sum\_superscalar}）在不同输入规模与 lane 配置下的性能差异。
 
 \begin{figure}[H]
 \centering
@@ -16,9 +15,8 @@
 \label{fig:sum_speedup_heatmap}
 \end{figure}
 
-\input{tables/03_experiments/01_sum_reduce_before_fix_results}
+图 \ref{fig:sum_normalized_curve} 显示，修复后 superscalar 路径在全规模区间均显著优于 naive 基线。图 \ref{fig:sum_speedup_heatmap} 则表明，高收益区域集中在中高 lane 配置，其中 lane=16 在多数规模上表现最稳健。
+
 \input{tables/03_experiments/02_sum_reduce_after_fix_results}
 
-修复前（表 \ref{tab:sum_reduce_before_fix_results}）最优 superscalar 仍显著慢于 naive（speedup $<1$）；
-修复后（表 \ref{tab:sum_reduce_after_fix_results}）在绝大多数规模上获得约 $3\times$ 到 $4\times$ 的加速，
-与图 \ref{fig:sum_speedup_heatmap} 的高收益区域一致。
+由表 \ref{tab:sum_reduce_after_fix_results} 可见，修复后最优配置在多数规模上实现约 $3\times$ 到 $4\times$ 的加速，峰值约为 $4.15\times$。该结果与图示趋势一致，说明通过消除实现缺陷并匹配合适并行 lane，可将指令级并行性有效转化为可重复的端到端吞吐提升。
