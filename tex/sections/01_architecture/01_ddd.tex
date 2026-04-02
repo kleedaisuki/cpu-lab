@@ -1,18 +1,17 @@
 \subsection{领域驱动设计架构思想}
 
-本项目采用领域驱动设计（Domain-Driven Design, DDD）来组织代码，其核心目标不是“按技术栈分目录”，而是“按业务语义建模并约束依赖方向”。
-在我们的 CPU-Lab 语境中，业务语义对应为实验对象（矩阵点积与求和归约）、实验流程（配置加载、批量执行、结果落盘）以及外部交互（CLI）。
+我们引入领域驱动设计（Domain-Driven Design, DDD）。
 
-我们将系统划分为四层：\textbf{Interfaces}、\textbf{Application}、\textbf{Domain}、\textbf{Infrastructure}。
-这种分层遵循依赖倒置原则（Dependency Inversion Principle, DIP）：高层策略不直接依赖底层细节，底层通过实现接口被高层使用。
-这样做有三个直接收益：
+在构建现代高性能计算（HPC）实验框架时，随着分析维度与硬件特性的增加，代码库极易陷入逻辑耦合的困境。DDD 核心目的不仅是物理层面上的目录组织，更是为了建立严格的边界控制（Boundary Control），将核心算法的演进与外围实验设施的变动彻底解耦。在这个计算实验的语境中，传统的业务模型被重新映射为“实验科学范式”：矩阵点积与求和归约等核心算法构成了系统的核心域（Core Domain）；实验的流程编排（如配置加载、多尺度批量执行）属于应用层（Application Layer）；而底层的高精度计时、命令行交互（CLI）与数据持久化，则被归入基础设施层（Infrastructure Layer）。
+
+我们将系统严格划分为四层：\textbf{Interfaces}、\textbf{Application}、\textbf{Domain} 与 \textbf{Infrastructure}。这一架构遵循依赖倒置原则（Dependency Inversion Principle, DIP）：控制流自顶向下调用，但源码层的依赖箭头必须单向指向最纯粹的 Domain 层。这种正交化设计（Orthogonal Design）为本项目带来了三个显著的系统级收益：
+
 \begin{itemize}
-    \item \textbf{可演化性}：新增算法策略（例如 cache 优化或 superscalar 优化）时，主要变更集中在 Domain，不破坏 CLI 与流程编排。
-    \item \textbf{可测试性}：Application 与 Domain 可在不依赖真实 I/O 的条件下进行单元测试（Unit Testing），降低测试耦合。
-    \item \textbf{可替换性}：计时器、CSV 读写、平台信息等基础设施可替换实现而不影响领域模型。
+    \item \textbf{算法演进的局部性（Locality of Algorithmic Evolution）}：在新增或替换微架构级优化策略（如 Cache Blocking 或 Superscalar 标量优化）时，变更仅局限于 Domain 层内部。外围的实验调度与数据采集流对底层算法的替换保持透明，有效遏制了复杂度的全局蔓延（Global Sprawl）。
+    \item \textbf{核心逻辑的确定性验证（Deterministic Verification of Core Logic）}：通过抽象接口切断 Domain 层与底层物理 I/O（如真实的系统时钟或磁盘文件系统）的直接耦合，核心算法成为可独立实例化的“纯函数（Pure Functions）”。这极大降低了构建测试桩（Mock）的成本，使得在隔离环境下进行高频单元测试（Unit Testing）成为可能。
+    \item \textbf{基础设施的无缝替换（Seamless Substitution of Infrastructure）}：性能评测所依赖的底层工具（如高频性能计数器或 CSV 序列化模块）仅作为 Domain 层抽象接口的具体实现（Implementation）被注入。这意味着在跨平台移植（例如从 x86 架构迁移至 ARM 架构）时，领域模型与实验逻辑无需任何重构。
 \end{itemize}
 
-对于本实验要求中的“高精度计时、多次重复、最小二乘近似、跨规模分析”，DDD 的价值在于把“实验科学方法”固化为稳定的领域与应用骨架，使算法实现与实验治理解耦。
-最终我们可以在保持接口稳定的前提下，持续迭代算法策略与数据分析流程。
+针对本实验中“高精度计时、重复采样、最小二乘近似（OLS）与跨规模渐进分析”等复杂需求，DDD 架构的最终价值在于：它将“科学实验方法论”固化为一层不可变的系统骨架。通过这种严格的模块化解耦，持续的算法探索与严谨的数据分析得以在稳定的架构基座上独立迭代，最终确保了实验结果的可复现性（Reproducibility）与高标准的代码工程质量。
 
 \input{tables/01_architecture/01_ddd_layers_and_functions}
